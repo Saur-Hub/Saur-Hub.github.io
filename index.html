@@ -45,7 +45,9 @@
                 margin: 0px;
                 padding: 0px;
                 border: 0px;
-		background-color:#243665;
+               
+		background-color:#3C1053FF;
+		#background-image: url("NewImage.png");
 		  
 	/* Full height */
 		#height: 100%;
@@ -56,7 +58,7 @@
         }    
             
         a {
-            color: #8BD8BD;
+            color: #000000;
         }
         
         #changecolor {
@@ -107,7 +109,26 @@
 		margin: 0;
 		font-family: Arial, Helvetica, sans-serif;
 	}
-	
+	.topnav {
+		overflow: hidden;
+		background-color: #333;
+	}
+	.topnav a {
+		float: left;
+		color: #f2f2f2;
+		text-align: center;
+		padding: 14px 16px;
+		text-decoration: none;
+		font-size: 17px;
+	}
+	.topnav a:hover {
+		background-color: #ddd;
+		color: black;
+	}
+	.topnav a.active {
+		background-color: #4CAF50;
+		color: white;
+	}
     </style>
     	
     </head>
@@ -116,17 +137,23 @@
 <!-- First Grid: Logo & About -->
 <div class="w3-row" id="myPage">
   <div class="w3-half w3 w3-container w3-center" style="height:700px" id="colorme">
+	  <!--<div class="topnav">
+		  <a class="active" href="#home">Home</a>
+		  <a href="#news">News</a>
+		  <a href="#contact">Contact</a>
+		  <a href="#about">About</a>
+	  </div>-->
 	  <div class="w3-padding-64">
 		  <h1 style="color: #33FF33">Saurabh Sakhare</h1>
 	  </div>
-  </div><!-- w3-half-->
+  </div>
   <div class="w3-half w3 w3-container" style="height:700px" id="colorabout">
 	  <div class="w3-padding-64 w3-center">
 		  <h1>About Me</h1>
 		  <img src="avatar.jpg" class="w3-margin w3-circle" alt="Person" style="width:50%">
 		  <div class="w3-left-align w3-padding-large">
 			  <p>Embedded Developer</p>
-			  <p>Working on 3D-Printers and Micro-Controllers</p>
+		<p>Working on 3D-Printers and Micro-Controllers.</p>
 		  </div>
 	  </div>
   </div>
@@ -161,7 +188,8 @@
 <!-- Footer -->
 <footer class="container-fluid text-center">
   <a href="#myPage" title="To Top">
-    <span class="glyphicon glyphicon-chevron-up"></span>
+	  <span class="glyphicon glyphicon-chevron-up"></span>
+
   </a>
     <p>Copyright Saurabh Sakhare 2020 &copy;</p><br />
     <a href="https://twitter.com/im_sakhare" style="font-size:24px" class="fa" target="_blank">&#xf099;</a>
