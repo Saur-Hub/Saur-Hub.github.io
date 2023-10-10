@@ -1,202 +1,63 @@
 <!DOCTYPE html>
-<html>
-    <head>
-<title>Saurabh Sakhare</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
-  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        
-        <script>
-            $(document).ready(function(){
-  $("a").on('click', function(event) {
-
-    if (this.hash !== "") {
-      
-      event.preventDefault();
-
-      
-      var hash = this.hash;
-        
-      $('html, body').animate({
-        scrollTop: $(hash).offset().top
-      }, 800, function(){
-        window.location.hash = hash;
-      });
-    }
-  });
-});
-        </script>
-        
-        
+<html lang="en">
+<head>
+    <!-- Meta Tags -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/imgs/ItachiEye.gif">
     
-    <style>
+    <!-- Title -->
+    <title>🌴 ・ im_saurabhs</title>
+
+    <!-- Css -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Javascript -->
     
-        *{
-                margin: 0px;
-                padding: 0px;
-                border: 0px;
-               
-		background-color:#3C1053FF;
-		#background-image: url("NewImage.png");
-		  
-	/* Full height */
-		#height: 100%;
-	/* Center and scale the image nicely */
-  		background-position: center;
-  		background-repeat: no-repeat;
-  		background-size: cover;
-        }    
-            
-        a {
-            color: #000000;
-        }
-        
-        #changecolor {
-	
-            //background-color: #F26627;
-        }
-        
-        #colorme{
-            //background-color: #325D79;
-        }
-        
-        #colorabout{
-            //background-color: #9BD7D1;
-        }
-        
-        #finalcolor {
-	      //background-color: #F9A26C;
-        }
-        
-        #boxcolor {
-	       
-        }
-        
-        p {
-                color: #000000;
-                font-size: 20px;
-		font-family:courier,arial,helvetica;
-        }
-        
-        h1 {
-                color: #000000;
-		font-family:courier,arial,helvetica;
-        }
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous">
 
-	h3 {
-		color:#000000;
-		font-family:courier,arial,helvetica;
-	}
-        
-        #fontinc{
-                font-size: 40px;
-        }
-        
-        #fontincr{
-                font-size: 40px;
-        }
-	body {
-		margin: 0;
-		font-family: Arial, Helvetica, sans-serif;
-	}
-	.topnav {
-		overflow: hidden;
-		background-color: #333;
-	}
-	.topnav a {
-		float: left;
-		color: #f2f2f2;
-		text-align: center;
-		padding: 14px 16px;
-		text-decoration: none;
-		font-size: 17px;
-	}
-	.topnav a:hover {
-		background-color: #ddd;
-		color: black;
-	}
-	.topnav a.active {
-		background-color: #4CAF50;
-		color: white;
-	}
-    </style>
-    	
-    </head>
-    <body class="w3-content" style="max-width:1300px">
+</head>
+<body>
 
-<!-- First Grid: Logo & About -->
-<div class="w3-row" id="myPage">
-  <div class="w3-half w3 w3-container w3-center" style="height:700px" id="colorme">
-	  <!--<div class="topnav">
-		  <a class="active" href="#home">Home</a>
-		  <a href="#news">News</a>
-		  <a href="#contact">Contact</a>
-		  <a href="#about">About</a>
-	  </div>-->
-	  <div class="w3-padding-64">
-		  <h1 style="color: #33FF33">Saurabh Sakhare</h1>
-	  </div>
-  </div>
-  <div class="w3-half w3 w3-container" style="height:700px" id="colorabout">
-	  <div class="w3-padding-64 w3-center">
-		  <h1>About Me</h1>
-		  <img src="avatar.jpg" class="w3-margin w3-circle" alt="Person" style="width:50%">
-		  <div class="w3-left-align w3-padding-large">
-			  <p>Embedded Developer</p>
-		<p>Working on 3D-Printers and Micro-Controllers.</p>
-		  </div>
-	  </div>
-  </div>
-</div>
+    <header>
+        <nav>
+            <div class="header_logo">
+                <img src="assets/imgs/ItachiEye.gif" alt="" srcset="">
+            </div>
+            <div class="header_links">
+                <ul class="nav_links">
+                    <li class="nav_link"><a href="#">Home</a></li>
+                    <li class="nav_link"><a href="#">Experience</a></li>
+                    <!-- <li class="nav_link"><a href="#">Repos</a></li> -->
+                </ul>
+            </div>
+        </nav>
+    </header>
 
+    <section class="main">
+        <img src="assets/imgs/Saurabh.png" alt="" srcset="">
+        <span>Saurabh Sakhare</span>
+        <p>Indian Automotive Embedded Developer.</p>
+        <ul>
+            <li><a target="_blank" href="https://www.instagram.com/im_saurabhs"><i class="fab fa-instagram"></i></a></li>
+            <li><a target="_blank" href="https://github.com/Saur-Hub"><i class="fab fa-github"></i></a></li>
+            <li><a target="_blank" href="https://twitter.com/im_saurabhs"><i class="fab fa-twitter"></i></a></li>
+        </ul>
+        <iframe style="border-radius:12px" 
+        src="https://open.spotify.com/embed/playlist/37t3229VrqDe0ZH8AWOgUt?utm_source=generator&theme=0" 
+        width="20%" 
+        height="140" 
+        frameBorder="0" 
+        allowfullscreen="" 
+        background-color : transparent;
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+        loading="lazy"></iframe>
+    </section>
 
-<!-- Second Grid: Swing By & Contact -->
-<div class="w3-row" id="contact">
-  <div class="w3-half w3 w3-container w3-center" style="height:700px" id="finalcolor">
-    <div class="w3-padding-64">
-      <h1>Some of my work</h1>
-      <h3> Coming Soon </h3>
-    </div>
-    <div class="w3-padding-64" style="font-size: 30px">
-        <p>Github Profile: <a href="https://github.com/Saur-Hub">Saurabh</a></p>
-        <p style="color: #CC2A49">My Projects</p>
-    </div>
-  </div>
-  <div class="w3-half w3- w3-container" style="height:700px" id="changecolor">
-    <div class="w3-padding-64 w3-padding-large">
-      <h1>Contact/Follow Me</h1>
-      <p class="w3-opacity">GET IN TOUCH</p>
-        <h3 style="color: #808080">Gmail:<a href="mailto:saurabhs0294@gmail.com">saurabhs0294@gmail.com</a><h3>
-            <h3 style="color: #808080">Twitter: <a href="https://twitter.com/im_sakhare"> @Saurabh Sakhare </a></h3>
-            <h3 style="color: #808080">Instagram: <a href="https://www.instagram.com/im_saurabhs/">Saurabh</a></h3>
-            <h3 style="color: #808080">Github: <a href="https://github.com/Saur-Hub">Saurabh</a></h3>
-            <h3 style="color: #808080">LinkedIN: <a href="https://www.linkedin.com/in/saurabh-sakhare-006a9040/">Saurabh Sakhare</a></h3>
-    </div>
-  </div>
-</div>
-
-<!-- Footer -->
-<footer class="container-fluid text-center">
-  <a href="#myPage" title="To Top">
-	  <span class="glyphicon glyphicon-chevron-up"></span>
-
-  </a>
-    <p>Copyright Saurabh Sakhare 2020 &copy;</p><br />
-    <a href="https://twitter.com/im_sakhare" style="font-size:24px" class="fa" target="_blank">&#xf099;</a>
-    <a href="https://www.instagram.com/im_saurabhs/" style="font-size:24px" class="fa" target="_blank">&#xf16d;</a>
-    <a href="https://www.linkedin.com/in/saurabh-sakhare-006a9040" style="font-size:24px" class="fa" target="_blank">&#xf0e1;</a>  
-</footer>
+    <section class="spotify">
+    </section>
 
 </body>
 </html>
-
