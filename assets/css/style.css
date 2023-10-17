@@ -178,3 +178,8 @@ section.main ul li a:hover {
         opacity: 1
     }
 }
+
+section.embedSpotify {
+display: flex;
+flex-direction: inherit;
+}
