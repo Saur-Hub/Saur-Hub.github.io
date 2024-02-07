@@ -183,3 +183,12 @@ section.embedSpotify {
 display: flex;
 flex-direction: inherit;
 }
+
+#counter {
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	background-color: #333;
+	color: #fff;
+	padding: 5px;
+}
