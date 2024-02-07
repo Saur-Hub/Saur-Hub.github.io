@@ -18,7 +18,7 @@ myImage.addEventListener('click', play)
 myImage.addEventListener('mouseover',play)
 myImage.addEventListener('mouseout',stop)
 
-/*
+
 // Check if the visitor count has already been set
 if (localStorage.getItem('visitorCount') === null) {
 
@@ -32,8 +32,9 @@ if (localStorage.getItem('visitorCount') === null) {
 
 	localStorage.setItem('visitorCount', count);
 	document.getElementById('counter').innerHTML = count;
-}*/
+}
 
+/*
 // Check if the user ID cookie exists
 let userId = getCookie('userID');
 
@@ -71,4 +72,4 @@ function setCookie(name, value, days) {
 		expires = '; expires=' + date.toUTCString();
 	}
 	document.cookie = name + '=' + (value || '') + expires + '; path=/';
-}
+}*/
