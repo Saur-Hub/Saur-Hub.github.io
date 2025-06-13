@@ -1,15 +1,34 @@
-<p align='center'>
-  <b>🎨 Follow me here 🎨</b><br>  
-  <a href="https://twitter.com/im_saurabhs">Twitter</a> |
-  <a href="https://github.com/Saur-Hub">Github</a><br><br>
-  <!-- <img src="https://repository-images.githubusercontent.com/415421595/c116844b-4471-4865-b26f-88a4ec2ee8cb" style="width: 80%"> -->
-</p>
 
-##   
- 
+# Saurabh Sakhare Portfolio
 
-### 📜 TODO
-- In future remove the embed spotify player and add internal connection to spotify songs will play automatically.
+A futuristic embedded systems portfolio designed with a MacOS Minimal Dark aesthetic and electronics-themed visuals.
 
-##  
+## 🔧 Features
+- ⚙️ Matrix-style animated background on all pages
+- 🧠 Clean layout with glassmorphism and glowing elements
+- 🎶 Spotify "Now Playing" integration
+- 🎥 "I Like" tab listing personal favorite media
+- 🖥 Optimized for deployment on GitHub Pages
 
+## 📁 Folder Structure
+
+```
+.
+├── index.html
+├── likes.html
+├── now-playing.html
+├── css/
+│   └── style.css
+├── js/
+│   └── matrix.js
+```
+
+## 🚀 How to Deploy
+
+1. Clone or download this repo
+2. Push to your GitHub repo named `yourusername.github.io`
+3. Open your browser at https://yourusername.github.io
+
+## 📬 Contact
+
+Feel free to connect at [saurabhs0294@gmail.com](mailto:saurabhs0294@gmail.com) or [GitHub](https://github.com/Saur-Hub)

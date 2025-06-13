@@ -1,65 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Meta Tags -->
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="assets/imgs/ItachiEye.gif">
-    
-    <!-- Title -->
-    <title>  im_saurabhs</title>
-
-    <!-- Css -->
-    <link rel="stylesheet" href="assets/css/style.css">
-
-    <!-- Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous">
-
-    <!-- To Auto-play the  spotify on website-->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <title>Saurabh Sakhare</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .intro {
+      font-family: monospace;
+      font-size: 1rem;
+      color: #00ff00;
+      white-space: pre;
+      margin: 2em auto;
+      max-width: 800px;
+    }
+    .about-section {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2em;
+    }
+    .about-section img {
+      border-radius: 12px;
+      max-width: 250px;
+      width: 100%;
+      box-shadow: 0 0 12px #00ffc3;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5em;
+      margin-top: 1em;
+    }
+    .badges span {
+      background: #00ffc3;
+      color: #000;
+      padding: 0.4em 0.8em;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.85em;
+    }
+    .exp-card {
+      border: 1px solid #00ffc3;
+      border-radius: 10px;
+      padding: 1em;
+      margin-bottom: 1em;
+      background-color: rgba(255,255,255,0.02);
+      transition: transform 0.2s;
+    }
+    .exp-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 10px #00ffc3;
+    }
+    .exp-card h3 {
+      margin-bottom: 0.2em;
+    }
+    .exp-card small {
+      display: block;
+      margin-bottom: 0.8em;
+      color: #aaa;
+    }
+  </style>
 </head>
-
-<!-- Start of Main Body -->
 <body>
+<canvas id="matrix"></canvas>
 
-    <header>
-        <nav>
-            <div class="header_logo">
-                <img src="assets/imgs/ItachiEye.gif" alt="" srcset="">
-            </div>
-            <div class="header_links">
-                <ul class="nav_links">
-                    <li class="nav_link"><a href="index.html">Home</a></li>
-                    <li class="nav_link"><a href="experience.html">Experience</a></li>
-                    <!-- <li class="nav_link"><a href="#">Repos</a></li> -->
-                </ul>
-            </div>
-        </nav>
-    </header>
+<div class="intro">
+>> Booting up Saurabh Sakhare's portfolio...
+>> Initializing About Me...
+>> Experience loaded ✅
+</div>
 
-    <section class="main">
-        <img id="my-image" src="assets/imgs/Saurabh.png" alt="" srcset="">
-        <span>Saurabh Sakhare</span>
-        <p>Automotive Embedded Developer.</p>
-        <ul>
-            <li><a target="_blank" href="https://www.instagram.com/im_saurabhs"><i class="fab fa-instagram"></i></a></li>
-            <li><a target="_blank" href="https://github.com/Saur-Hub"><i class="fab fa-github"></i></a></li>
-            <li><a target="_blank" href="https://twitter.com/im_saurabhs"><i class="fab fa-twitter"></i></a></li>
-        </ul>
+<header style="text-align:center;">
+  <h1>> Hello, I'm Saurabh</h1>
+  <p class="subtitle">Embedded Systems Engineer • Circuit Dreamer • Code Tuner</p>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="likes.html">I Like</a>
+    <a href="now-playing.html">Now Playing</a>
+  </nav>
+</header>
 
-        <audio id="aud-player">
-            <source src="assets/audio/gangstersParadis.webm" type="audio/webm">
-            Your browser does not support the audio element.
-          </audio>
-           
-          <div id="counter">0</div>
-    </section>
-    
+<section>
+  <h2>About Me</h2>
+  <div class="about-section">
+    <img src="https://via.placeholder.com/250x250.png?text=Saurabh" alt="Saurabh Placeholder" />
+    <div>
+      <p>
+        I'm an Embedded Software Engineer with over 6 years of experience in the automotive domain.
+        My passion lies in designing low-level firmware, architecting diagnostic stacks, and debugging
+        systems that others deem impossible to understand.
+      </p>
+      <p>
+        I believe in building code that's not just functional, but reliable under pressure — like any ECU should be.
+        Outside of work, I enjoy diving into tech documentaries, retro music, and fine-tuning virtual dashboards.
+      </p>
+      <div class="badges">
+        <span>AUTOSAR</span><span>C++</span><span>Embedded C</span><span>CAN</span><span>UDS</span>
+        <span>Infineon</span><span>ECU</span><span>STM32</span><span>RTOS</span><span>CAPL</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Experience</h2>
+  <div class="exp-card">
+    <h3>Senior Software Engineer – Bosch Global Software Technologies</h3>
+    <small>Aug 2022 – Present</small>
+    <p>Working on AUTOSAR-based diagnostic stacks for ADAS radar modules. Developed software features for front radar, calibration workflows, and UDS support.</p>
+    <div class="badges"><span>AUTOSAR</span><span>UDS</span><span>CAN</span><span>ECU</span></div>
+  </div>
+
+  <div class="exp-card">
+    <h3>Embedded Engineer – ElectRay Technologies</h3>
+    <small>Jun 2021 – Aug 2022</small>
+    <p>Designed and developed a UDS stack for Infineon-based platforms. Led the CAN stack integration and implementation of diagnostic services.</p>
+    <div class="badges"><span>Infineon</span><span>UDS</span><span>Diagnostics</span><span>Embedded C</span></div>
+  </div>
+
+  <div class="exp-card">
+    <h3>Firmware Developer – Prayasta3D</h3>
+    <small>Dec 2019 – Jun 2021</small>
+    <p>Built firmware for a medical-grade silicone 3D printer. Managed STM32 peripherals, vacuum control, and UI panel logic in C.</p>
+    <div class="badges"><span>STM32</span><span>RTOS</span><span>I2C</span><span>SPI</span><span>3D Printing</span></div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 Saurabh Sakhare • <a href="mailto:saurabhs0294@gmail.com">Contact</a></p>
+</footer>
+
+<script src="js/matrix.js"></script>
 </body>
-    <!-- Javascript -->
-    <script src="./assets/js/indexscript.js"></script>
 </html>
