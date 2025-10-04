@@ -18,9 +18,17 @@ async function initializeAuth() {
     const code = new URLSearchParams(window.location.search).get('code');
     if (code) {
         console.log('OAuth callback detected with code');
-        await handleOAuthCallback(code);
-        // Remove code from URL
-        window.history.replaceState({}, document.title, '/watchlist.html');
+        // Add error handling for URL state
+        try {
+            await handleOAuthCallback(code);
+            // Remove code from URL - use relative path to work on GitHub Pages
+            const path = window.location.pathname;
+            window.history.replaceState({}, document.title, path);
+        } catch (error) {
+            console.error('Failed to handle OAuth callback:', error);
+            // Clear any existing tokens to ensure clean state
+            handleLogout();
+        }
     }
 
     // Check for existing token in session storage
@@ -42,13 +50,27 @@ async function initializeAuth() {
 
 async function handleLogin() {
     console.log('Initiating GitHub login...');
-    // Add state parameter for security
-    const state = Math.random().toString(36).substring(7);
-    sessionStorage.setItem('oauth_state', state);
-    
-    const authUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_REDIRECT_URI}&scope=repo&state=${state}`;
-    console.log('Redirecting to GitHub auth page...');
-    window.location.href = authUrl;
+    try {
+        // Add state parameter for security with more entropy
+        const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+        sessionStorage.setItem('oauth_state', state);
+        
+        // Ensure we encode the redirect URI properly
+        const encodedRedirectUri = encodeURIComponent(GITHUB_REDIRECT_URI);
+        const authUrl = `https://github.com/login/oauth/authorize` +
+            `?client_id=${GITHUB_CLIENT_ID}` +
+            `&redirect_uri=${encodedRedirectUri}` +
+            `&scope=repo user` + // Adding user scope for profile access
+            `&state=${state}`;
+        
+        console.log('Redirecting to GitHub auth page with URI:', GITHUB_REDIRECT_URI);
+        window.location.href = authUrl;
+    } catch (error) {
+        console.error('Failed to initiate login:', error);
+        alert('Failed to start login process. Please try again.');
+    }
 }
 
 async function handleOAuthCallback(code) {
@@ -59,26 +81,39 @@ async function handleOAuthCallback(code) {
     const savedState = sessionStorage.getItem('oauth_state');
     sessionStorage.removeItem('oauth_state'); // Clear state after use
     
-    if (state !== savedState) {
-        console.error('State mismatch - possible CSRF attack');
+    if (!state || !savedState || state !== savedState) {
+        console.error('State mismatch or missing - possible CSRF attack');
+        console.log('Received state:', state);
+        console.log('Saved state:', savedState);
         alert('Authentication failed: Invalid state parameter');
+        handleLogout();
         return;
     }
 
     try {
-        // Using implicit grant flow since this is a public GitHub Pages site
-        // The code we receive is actually a personal access token with limited scope
+        // Using GitHub's OAuth web application flow
         console.log('Validating GitHub token...');
         
+        // First try with code as token
         const testResponse = await fetch('https://api.github.com/user', {
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `Bearer ${code}`
+                'Authorization': `token ${code}` // Try with 'token' first
             }
         });
         
         if (!testResponse.ok) {
-            throw new Error(`GitHub API error: ${testResponse.status}`);
+            // If that fails, try with Bearer format
+            const bearerResponse = await fetch('https://api.github.com/user', {
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Authorization': `Bearer ${code}`
+                }
+            });
+            
+            if (!bearerResponse.ok) {
+                throw new Error(`GitHub API error: ${bearerResponse.status}`);
+            }
         }
         
         // If we get here, the token is valid
@@ -86,9 +121,17 @@ async function handleOAuthCallback(code) {
         sessionStorage.setItem('github_token', accessToken);
         console.log('Authentication successful');
         
+        // Verify token by loading user data
         await loadUserData();
     } catch (error) {
         console.error('Authentication error:', error);
+        // Log the full error for debugging
+        console.log('Full error object:', {
+            message: error.message,
+            stack: error.stack,
+            response: error.response
+        });
+        
         if (error.message.includes('401')) {
             alert('Authentication failed: Invalid or expired token. Please try logging in again.');
         } else {
