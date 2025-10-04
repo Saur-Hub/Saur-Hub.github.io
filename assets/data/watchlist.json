@@ -1,6 +1,16 @@
 {
   "movies": [
     {
+      "title": "Spider-Man: Homecoming",
+      "year": "2017",
+      "imdbRating": "7.4",
+      "imdbId": "tt2250912",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BODY2MTAzOTQ4M15BMl5BanBnXkFtZTgwNzg5MTE0MjI@._V1_SX300.jpg",
+      "notes": "",
+      "type": "movie",
+      "addedAt": "2025-10-04T16:25:39.915Z"
+    },
+    {
       "title": "Spider-Man",
       "year": "2002",
       "imdbRating": "7.4",
