@@ -1,4 +1,15 @@
 {
-  "movies": [],
+  "movies": [
+    {
+      "title": "The Green Mile",
+      "year": "1999",
+      "imdbRating": "8.6",
+      "imdbId": "tt0120689",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BMTUxMzQyNjA5MF5BMl5BanBnXkFtZTYwOTU2NTY3._V1_SX300.jpg",
+      "notes": "",
+      "type": "movie",
+      "addedAt": "2025-10-04T15:50:33.062Z"
+    }
+  ],
   "series": []
 }
