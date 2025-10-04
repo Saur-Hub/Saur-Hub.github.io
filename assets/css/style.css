@@ -1,16 +1,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap');
+
+/* CSS Variables */
+:root {
+    --color-background: #16161a;
+    --color-text: #fff;
+    --color-text-muted: #a6a8b8;
+    --color-text-description: #94a1b2;
+    --color-border: #3b3d4e93;
+    --color-border-dark: #21222b93;
+    --font-primary: "Poppins", sans-serif;
+    --transition-speed: 0.3s;
+}
+
+/* Reset CSS */
 *, *::before, *::after {
     padding: 0;
     margin: 0;
+    box-sizing: border-box;
     scroll-behavior: smooth;
 }
 
+/* Base styles */
+html {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
 body {
-    background-color: #16161a;
-    color: #fff;
-    font-family: "Poppins", sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-primary);
 }
 
 /* Nav Bar */
@@ -37,9 +58,9 @@ header nav .header_links ul li, section.main ul li {
 header nav .header_links ul li a {
     outline: none;
     text-decoration: none;
-    color: #a6a8b8;
+    color: var(--color-text-muted);
     padding: 5px 12px;
-    transition: 0.3s all;
+    transition: var(--transition-speed) all;
     font-size: 15px;
 }
 

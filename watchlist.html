@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta Tags -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="My personal watchlist of movies and TV series with ratings">
+    <link rel="icon" href="assets/imgs/ItachiEye.gif">
+    
+    <!-- Title -->
+    <title>Watchlist - im_saurabhs</title>
+
+    <!-- Css -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/watchlist.css">
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="header_logo">
+                <img src="assets/imgs/ItachiEye.gif" alt="Logo" srcset="">
+            </div>
+            <div class="header_links">
+                <ul class="nav_links">
+                    <li class="nav_link"><a href="index.html">Home</a></li>
+                    <li class="nav_link"><a href="experience.html">Experience</a></li>
+                    <li class="nav_link"><a href="watchlist.html" class="active">Watchlist</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Auth container moved to bottom-right corner -->
+    <div class="auth-container" id="auth-container">
+        <button id="login-button" class="github-login-btn" onclick="handleLogin()">
+            <i class="fab fa-github"></i> <span class="login-text">Login</span>
+        </button>
+        <div id="user-info" style="display: none;">
+            <img id="user-avatar" src="" alt="User avatar" class="user-avatar">
+            <span id="username"></span>
+            <button onclick="handleLogout()" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <main class="watchlist-container">
+
+        <div class="add-button-container" id="add-button-container" style="display: none;">
+            <button onclick="showAddModal()" class="add-content-btn">
+                <i class="fas fa-plus"></i> Add to Watchlist
+            </button>
+        </div>
+
+        <div class="content-sections">
+            <section class="movies-section">
+                <h2>Movies Watchlist</h2>
+                <div class="search-bar">
+                    <input type="text" id="movie-search" placeholder="Search movies...">
+                </div>
+                <div class="watchlist-grid" id="movies-grid">
+                    <!-- Movie items will be added here dynamically -->
+                </div>
+            </section>
+
+            <section class="series-section">
+                <h2>TV Series Watchlist</h2>
+                <div class="search-bar">
+                    <input type="text" id="series-search" placeholder="Search TV series...">
+                </div>
+                <div class="watchlist-grid" id="series-grid">
+                    <!-- Series items will be added here dynamically -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Add Content Modal -->
+        <div id="add-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>Add to Watchlist</h3>
+                <form id="add-form">
+                    <div class="search-container">
+                        <input type="text" id="search-title" placeholder="Search for a movie or TV show..." autocomplete="off">
+                        <div id="suggestions" class="suggestions-dropdown"></div>
+                    </div>
+                    <div class="selected-item" id="selected-item" style="display: none;">
+                        <img id="selected-poster" src="" alt="Poster" class="item-poster">
+                        <div class="item-details">
+                            <h4 id="selected-title"></h4>
+                            <p id="selected-year"></p>
+                            <p id="selected-imdb"></p>
+                            <p id="content-type"></p>
+                        </div>
+                    </div>
+                    <input type="number" id="my-rating" min="0" max="10" step="0.1" placeholder="Your Rating (0-10)" required>
+                    <textarea id="notes" placeholder="Your Notes (optional)"></textarea>
+                    <input type="hidden" id="title">
+                    <input type="hidden" id="year">
+                    <input type="hidden" id="imdb-id">
+                    <input type="hidden" id="poster-url">
+                    <input type="hidden" id="type">
+                    <button type="submit">Add</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/watchlist.js"></script>
+</body>
+</html>

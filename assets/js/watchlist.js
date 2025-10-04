@@ -1,0 +1,253 @@
+'use strict';
+
+// DOM Elements
+const moviesGrid = document.getElementById('movies-grid');
+const seriesGrid = document.getElementById('series-grid');
+const modal = document.getElementById('add-modal');
+const closeBtn = document.querySelector('.close');
+const addForm = document.getElementById('add-form');
+const movieSearch = document.getElementById('movie-search');
+const seriesSearch = document.getElementById('series-search');
+const searchInput = document.getElementById('search-title');
+const suggestionsDropdown = document.getElementById('suggestions');
+const selectedItem = document.getElementById('selected-item');
+
+// State
+let currentType = 'movie';
+let searchTimeout;
+let watchlist = {
+    movies: JSON.parse(localStorage.getItem('movies') || '[]'),
+    series: JSON.parse(localStorage.getItem('series') || '[]')
+};
+
+// Event Listeners
+closeBtn.onclick = () => {
+    modal.style.display = 'none';
+    resetModal();
+};
+
+window.onclick = (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+        resetModal();
+    }
+};
+
+movieSearch.addEventListener('input', () => filterItems('movies'));
+seriesSearch.addEventListener('input', () => filterItems('series'));
+
+// Search input event listener with debouncing
+searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim();
+    
+    // Clear previous timeout
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    if (query.length < 3) {
+        suggestionsDropdown.style.display = 'none';
+        return;
+    }
+    
+    // Set new timeout for API call
+    searchTimeout = setTimeout(() => {
+        searchMovies(query);
+    }, 500);
+});
+
+// Functions
+function addMovie() {
+    currentType = 'movie';
+    openModal();
+}
+
+function addSeries() {
+    currentType = 'series';
+    openModal();
+}
+
+function openModal() {
+    modal.style.display = 'block';
+    addForm.reset();
+}
+
+async function searchMovies(query) {
+    try {
+        const response = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(query)}&apikey=d9d4d393`);
+        const data = await response.json();
+        
+        if (data.Response === "True") {
+            displaySuggestions(data.Search);
+        } else {
+            suggestionsDropdown.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error searching movies:', error);
+    }
+}
+
+async function getMovieDetails(imdbID) {
+    try {
+        const response = await fetch(`https://www.omdbapi.com/?i=${imdbID}&apikey=d9d4d393`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching movie details:', error);
+        return null;
+    }
+}
+
+function displaySuggestions(results) {
+    suggestionsDropdown.innerHTML = '';
+    
+    results.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        
+        const posterUrl = item.Poster !== 'N/A' ? item.Poster : 'assets/imgs/no-poster.png';
+        
+        div.innerHTML = `
+            <img src="${posterUrl}" alt="${item.Title}" class="suggestion-poster">
+            <div class="suggestion-info">
+                <div class="suggestion-title">${item.Title}</div>
+                <div class="suggestion-year">${item.Year}</div>
+            </div>
+        `;
+        
+        div.addEventListener('click', () => selectMovie(item.imdbID));
+        suggestionsDropdown.appendChild(div);
+    });
+    
+    suggestionsDropdown.style.display = 'block';
+}
+
+async function selectMovie(imdbID) {
+    const details = await getMovieDetails(imdbID);
+    if (!details) return;
+    
+    // Update hidden inputs
+    document.getElementById('title').value = details.Title;
+    document.getElementById('year').value = details.Year;
+    document.getElementById('imdb-id').value = imdbID;
+    document.getElementById('poster-url').value = details.Poster;
+    
+    // Update selected item display
+    document.getElementById('selected-poster').src = details.Poster !== 'N/A' ? details.Poster : 'assets/imgs/no-poster.png';
+    document.getElementById('selected-title').textContent = details.Title;
+    document.getElementById('selected-year').textContent = `Year: ${details.Year}`;
+    document.getElementById('selected-imdb').textContent = `IMDb Rating: ${details.imdbRating}`;
+    
+    // Show selected item and hide suggestions
+    selectedItem.style.display = 'flex';
+    suggestionsDropdown.style.display = 'none';
+    searchInput.value = '';
+}
+
+function resetModal() {
+    addForm.reset();
+    selectedItem.style.display = 'none';
+    suggestionsDropdown.style.display = 'none';
+    searchInput.value = '';
+}
+
+function createWatchlistItem(item) {
+    const div = document.createElement('div');
+    div.className = 'watchlist-item';
+    const posterUrl = item.posterUrl !== 'N/A' ? item.posterUrl : 'assets/imgs/no-poster.png';
+    
+    div.innerHTML = `
+        <div class="item-header">
+            <img src="${posterUrl}" alt="${item.title}" class="item-poster">
+            <div class="item-info">
+                <h3>${item.title}</h3>
+                <div class="year">${item.year}</div>
+            </div>
+        </div>
+        <div class="ratings">
+            <div class="rating">
+                <span>Your Rating</span>
+                <div class="value">${item.myRating}</div>
+            </div>
+            <div class="rating">
+                <span>IMDb</span>
+                <div class="value">${item.imdbRating}</div>
+            </div>
+        </div>
+        ${item.notes ? `<div class="notes">${item.notes}</div>` : ''}
+    `;
+    return div;
+}
+
+function filterItems(type) {
+    const searchInput = type === 'movies' ? movieSearch : seriesSearch;
+    const query = searchInput.value.toLowerCase();
+    const items = watchlist[type];
+    
+    const filtered = items.filter(item => 
+        item.title.toLowerCase().includes(query) || 
+        item.notes?.toLowerCase().includes(query)
+    );
+    
+    renderWatchlist(type, filtered);
+}
+
+function renderWatchlist(type, items = watchlist[type]) {
+    const grid = type === 'movies' ? moviesGrid : seriesGrid;
+    grid.innerHTML = '';
+    items.forEach(item => {
+        grid.appendChild(createWatchlistItem(item));
+    });
+}
+
+// Form submission
+addForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Check if user is authenticated and is repo owner
+    if (!accessToken || !userData || userData.login !== REPO_OWNER) {
+        alert('You must be logged in as the repository owner to add items');
+        return;
+    }
+    
+    const title = document.getElementById('title').value;
+    const myRating = document.getElementById('my-rating').value;
+    const year = document.getElementById('year').value;
+    const notes = document.getElementById('notes').value;
+    const posterUrl = document.getElementById('poster-url').value;
+    const imdbId = document.getElementById('imdb-id').value;
+    
+    if (!title || !year) {
+        alert('Please select a movie or TV show from the search results');
+        return;
+    }
+    
+    const details = await getMovieDetails(imdbId);
+    
+    const newItem = {
+        title,
+        year,
+        myRating,
+        imdbRating: details.imdbRating,
+        imdbId,
+        posterUrl,
+        notes,
+        type: details.Type,
+        addedAt: new Date().toISOString()
+    };
+    
+    const listType = details.Type === 'movie' ? 'movies' : 'series';
+    watchlist[listType].push(newItem);
+    watchlist[listType].sort((a, b) => b.addedAt.localeCompare(a.addedAt));
+    
+    // Save to GitHub repository
+    await saveWatchlistData();
+    renderWatchlist(listType);
+    
+    modal.style.display = 'none';
+    resetModal();
+});
+
+// Initial render
+renderWatchlist('movies');
+renderWatchlist('series');

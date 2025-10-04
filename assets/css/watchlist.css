@@ -1,0 +1,443 @@
+/* Watchlist Styles */
+.watchlist-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.movies-section,
+.series-section {
+    background-color: var(--color-border-dark);
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.movies-section h2,
+.series-section h2 {
+    color: var(--color-text);
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+}
+
+.search-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--color-background);
+    color: var(--color-text);
+}
+
+.search-bar button {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #7f5af0;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+}
+
+.search-bar button:hover {
+    background-color: #6b48d9;
+}
+
+.watchlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 1rem;
+}
+
+.watchlist-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.watchlist-grid::-webkit-scrollbar-track {
+    background: var(--color-background);
+    border-radius: 4px;
+}
+
+.watchlist-grid::-webkit-scrollbar-thumb {
+    background: #7f5af0;
+    border-radius: 4px;
+}
+
+.watchlist-item {
+    background-color: var(--color-background);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: transform var(--transition-speed);
+}
+
+.watchlist-item:hover {
+    transform: translateY(-5px);
+}
+
+.item-header {
+    display: flex;
+    margin-bottom: 1rem;
+}
+
+.item-poster {
+    width: 100px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 1rem;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-info h3 {
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.watchlist-item .year {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.ratings {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.rating {
+    text-align: center;
+}
+
+.rating span {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+}
+
+.rating .value {
+    color: var(--color-text);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.notes {
+    color: var(--color-text-description);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--color-border);
+    padding-top: 1rem;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    background-color: var(--color-background);
+    margin: 15% auto;
+    padding: 2rem;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+}
+
+.close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    color: var(--color-text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modal input,
+.modal textarea {
+    padding: 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background-color: var(--color-background);
+    color: var(--color-text);
+}
+
+.modal textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.modal button {
+    padding: 0.8rem;
+    background-color: #7f5af0;
+    color: var(--color-text);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+}
+
+.modal button:hover {
+    background-color: #6b48d9;
+}
+
+/* Header Navigation Styling */
+header nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+.header_links {
+    margin-left: auto;
+}
+
+.nav_links {
+    display: flex;
+    gap: 2rem;
+}
+
+/* Auth Container Styling */
+.auth-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    background-color: var(--color-background);
+    padding: 0.5rem;
+    border-radius: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.github-login-btn {
+    background-color: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-text-muted);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all var(--transition-speed);
+}
+
+.github-login-btn:hover {
+    background-color: rgba(127, 90, 240, 0.1);
+    color: var(--color-text);
+    border-color: var(--color-text);
+}
+
+#user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border);
+}
+
+#username {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.logout-btn {
+    background-color: transparent;
+    color: var(--color-text-muted);
+    border: none;
+    padding: 0.4rem;
+    cursor: pointer;
+    transition: color var(--transition-speed);
+    font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+    color: #dc3545;
+}
+
+.header_logo {
+    margin-right: 2rem;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    header nav {
+        padding: 1rem;
+    }
+
+    .nav_links {
+        gap: 1rem;
+    }
+
+    .auth-container {
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+
+.add-button-container {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.add-content-btn {
+    background-color: #7f5af0;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color var(--transition-speed);
+}
+
+.add-content-btn:hover {
+    background-color: #6b48d9;
+}
+
+/* Search and Suggestions Styling */
+.search-container {
+    position: relative;
+    width: 100%;
+}
+
+.suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--color-border);
+    transition: background-color var(--transition-speed);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background-color: rgba(127, 90, 240, 0.1);
+}
+
+.suggestion-poster {
+    width: 50px;
+    height: 75px;
+    object-fit: cover;
+    margin-right: 15px;
+    border-radius: 3px;
+}
+
+.suggestion-info {
+    flex: 1;
+}
+
+.suggestion-title {
+    color: var(--color-text);
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.suggestion-year {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.selected-item {
+    display: flex;
+    align-items: center;
+    background-color: rgba(127, 90, 240, 0.1);
+    border-radius: 5px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.item-poster {
+    width: 80px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-right: 15px;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h4 {
+    color: var(--color-text);
+    margin-bottom: 5px;
+    font-size: 1.2rem;
+}
+
+.item-details p {
+    color: var(--color-text-muted);
+    margin: 5px 0;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .watchlist-container {
+        margin: 1rem;
+    }
+
+    .movies-section,
+    .series-section {
+        padding: 1rem;
+    }
+
+    .watchlist-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
