@@ -1,6 +1,6 @@
 'use strict';
 
-import { handleLogin, handleLogout, initializeAuth, loadWatchlistData, saveWatchlistData, accessToken, userData, REPO_OWNER } from './auth.js';
+import { handleLogin, handleLogout, initializeAuth, loadWatchlistData, saveWatchlistData, accessToken, userData, REPO_OWNER, watchlist as remoteWatchlist } from './auth.js';
 
 // Make functions available globally
 window.handleLogin = handleLogin;
@@ -26,6 +26,21 @@ const selectedItem = document.getElementById('selected-item');
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Page initialized, checking for auth...');
     await initializeAuth();
+    // After auth, try to load the canonical watchlist from the repo (if available)
+    try {
+        const remote = await loadWatchlistData();
+        if (remote && (remote.movies || remote.series)) {
+            watchlistData = {
+                movies: remote.movies || [],
+                series: remote.series || []
+            };
+        }
+    } catch (e) {
+        console.warn('Could not load remote watchlist:', e);
+    }
+    // Render using the synchronized watchlistData
+    renderWatchlist('movies');
+    renderWatchlist('series');
 });
 
 // State
@@ -296,10 +311,12 @@ function filterItems(type) {
     renderWatchlist(type, filtered);
 }
 
-function renderWatchlist(type, items = watchlistData[type]) {
+function renderWatchlist(type, items) {
     const grid = type === 'movies' ? moviesGrid : seriesGrid;
     grid.innerHTML = '';
-    items.forEach(item => {
+    // Prefer items passed in, then remote watchlist from auth, then local watchlistData
+    const source = items || (remoteWatchlist?.[type]) || watchlistData[type] || [];
+    source.forEach(item => {
         grid.appendChild(createWatchlistItem(item));
     });
 }
@@ -364,9 +381,7 @@ addForm.addEventListener('submit', async (e) => {
     resetModal();
 });
 
-// Initial render
-renderWatchlist('movies');
-renderWatchlist('series');
+// Initial render is performed after auth/data load in DOMContentLoaded
 
 // --- Coalesced save: scheduleSave batches multiple quick saves into a single save call ---
 let saveTimer = null;

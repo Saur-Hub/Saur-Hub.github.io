@@ -10,6 +10,7 @@ export const REDIRECT_URI = 'https://saur-hub.github.io/watchlist.html';
 export const REPO_OWNER = 'Saur-Hub';
 const REPO_NAME = 'Saur-Hub.github.io';
 const DATA_FILE_PATH = 'assets/data/watchlist.json';
+const KEYWORDS_FILE_PATH = 'assets/data/keywords.json';
 
 // Token storage keys
 const TOKEN_STORAGE_KEY = 'github_token';
@@ -213,11 +214,14 @@ export function handleLogout() {
 
 export async function loadWatchlistData() {
     try {
+        // Build headers conditionally: include Authorization only when we have a valid accessToken
+        const headers = {
+            'Accept': 'application/vnd.github.v3+json'
+        };
+        if (accessToken) headers['Authorization'] = `token ${accessToken}`;
+
         const response = await fetch(`${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
-            headers: {
-                'Authorization': `token ${accessToken}`,
-                'Accept': 'application/vnd.github.v3+json'
-            }
+            headers
         });
         
         if (response.status === 404) {
@@ -305,5 +309,58 @@ export async function saveWatchlistData(data = null) {
     } catch (error) {
         console.error('Error saving watchlist data:', error);
         alert('Failed to save watchlist data. Please try again.');
+    }
+}
+
+// Save keywords array (owner-only). Accepts an array or object and writes to KEYWORDS_FILE_PATH
+export async function saveKeywords(keywords) {
+    const toSave = keywords;
+    if (!accessToken || userData?.login !== REPO_OWNER) throw new Error('Not authorized');
+
+    try {
+        let currentFile;
+        try {
+            const response = await fetch(`${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${KEYWORDS_FILE_PATH}`, {
+                headers: {
+                    'Authorization': `token ${accessToken}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            if (response.ok) {
+                currentFile = await response.json();
+            }
+        } catch (e) {
+            // file may not exist
+        }
+
+        const content = btoa(JSON.stringify(toSave, null, 2));
+        const body = {
+            message: 'Update keywords',
+            content,
+            branch: 'master'
+        };
+
+        if (currentFile?.sha) body.sha = currentFile.sha;
+
+        const response = await fetch(`${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${KEYWORDS_FILE_PATH}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`Failed to save keywords: ${response.status} ${errorData.message || ''}`);
+        }
+
+        const respData = await response.json().catch(() => ({}));
+        console.log('Keywords saved:', respData.commit ? respData.commit.sha : respData);
+        return respData;
+    } catch (error) {
+        console.error('Error saving keywords:', error);
+        throw error;
     }
 }

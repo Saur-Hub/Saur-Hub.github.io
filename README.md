@@ -41,7 +41,7 @@ Personal portfolio website showcasing my work as an Automotive Embedded Develope
 ```
 
 ## � TODO
-- [ ] Remove the embed spotify player and add internal connection to spotify songs will play automatically
+- [x] Remove the embed Spotify player and replace it with an internal audio playlist (auto-plays after user gesture)
 - [ ] Optimize images for better performance
 - [ ] Add dark/light theme toggle
 
