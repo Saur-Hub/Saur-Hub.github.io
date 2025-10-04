@@ -1,11 +1,14 @@
 // GitHub Configuration
 const GITHUB_API_URL = 'https://api.github.com';
+const GITHUB_OAUTH_URL = 'https://github.com/login/oauth/authorize';
+const GITHUB_CLIENT_ID = 'Ov23livEBhhIbW4Vf2TS';
+const GITHUB_REDIRECT_URI = 'https://saur-hub.github.io/watchlist.html';
 const REPO_OWNER = 'Saur-Hub';
 const REPO_NAME = 'Saur-Hub.github.io';
 const DATA_FILE_PATH = 'assets/data/watchlist.json';
 
-// Personal Access Token storage key
-const TOKEN_STORAGE_KEY = 'github_personal_token';
+// Token storage keys
+const TOKEN_STORAGE_KEY = 'github_token';
 
 let accessToken = null;
 let userData = null;
@@ -36,44 +39,37 @@ async function initializeAuth() {
 async function handleLogin() {
     console.log('Initiating GitHub login...');
     try {
-        // Clear any existing token
+        // Clear any existing tokens
         sessionStorage.removeItem(TOKEN_STORAGE_KEY);
         
-        // Prompt for Personal Access Token
-        const token = prompt(
-            'Please enter your GitHub Personal Access Token.\n\n' +
-            'To create a token:\n' +
-            '1. Go to GitHub.com → Settings → Developer settings → Personal access tokens → Tokens (classic)\n' +
-            '2. Click "Generate new token (classic)"\n' +
-            '3. Give it a name and select these scopes: repo, user\n' +
-            '4. Copy and paste the token here'
-        );
+        // Generate a secure state parameter
+        const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+            
+        // Store state with timestamp
+        sessionStorage.setItem('oauth_state', JSON.stringify({
+            value: state,
+            timestamp: Date.now()
+        }));
 
-        if (!token) {
-            throw new Error('No token provided');
-        }
-
-        // Store token temporarily
-        accessToken = token;
-
-        // Validate the token immediately
-        const response = await fetch(`${GITHUB_API_URL}/user`, {
-            headers: {
-                'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `token ${token}`
-            }
+        // Construct GitHub OAuth URL with parameters
+        const params = new URLSearchParams({
+            client_id: GITHUB_CLIENT_ID,
+            redirect_uri: GITHUB_REDIRECT_URI,
+            scope: 'repo,user',
+            state: state,
+            response_type: 'code'
         });
 
-        if (!response.ok) {
-            throw new Error('Invalid token');
-        }
-
-        // If we get here, token is valid
-        sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
-        console.log('Authentication successful');
-        
-        // Load user data and initialize the application
-        await loadUserData();
+        // Redirect to GitHub login page
+        // This will show GitHub's login page where users can:
+        // 1. Log in with username/password
+        // 2. Use their passkey if configured
+        // 3. Use 2FA if enabled
+        const authUrl = `${GITHUB_OAUTH_URL}?${params.toString()}`;
+        console.log('Redirecting to GitHub login page...');
+        window.location.href = authUrl;
     } catch (error) {
         console.error('Login failed:', error);
         alert('Login failed: ' + (error.message || 'Please try again'));
@@ -96,18 +92,16 @@ async function handleOAuthCallback(code) {
             throw new Error('Invalid or expired state parameter');
         }
 
-        // For GitHub Pages, we'll use the authorization code as a token
-        // This is a workaround since we can't securely exchange the code for a token on the client side
         console.log('Setting up GitHub API access...');
         
-        // Set the authorization code as our access token
+        // Store the code as our access token
         accessToken = code;
         
         // Test the token with a simple API call
         const testResponse = await fetch(`${GITHUB_API_URL}/user`, {
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `token ${accessToken}` // Use 'token' prefix for GitHub API
+                'Authorization': `token ${accessToken}`
             }
         });
         
@@ -115,14 +109,16 @@ async function handleOAuthCallback(code) {
             throw new Error(`Failed to validate GitHub access: ${testResponse.status}`);
         }
         
-        // Check if we have the required permissions
-        const userData = await userResponse.json();
+        // Parse the user data
+        const userData = await testResponse.json();
+        
+        // Verify repository owner
         if (userData.login !== REPO_OWNER) {
             throw new Error('You must be the repository owner to access this application');
         }
         
-        // Store the token and redirect to clean URL
-        sessionStorage.setItem('github_token', accessToken);
+        // Store the token and update UI
+        sessionStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
         console.log('Authentication successful');
         
         // Load user data and initialize the application

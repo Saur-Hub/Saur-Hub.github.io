@@ -427,17 +427,182 @@ header nav {
 }
 
 /* Responsive Design */
+/* Mobile and Tablet Styles */
 @media (max-width: 768px) {
+    /* General container adjustments */
     .watchlist-container {
         margin: 1rem;
+        padding-bottom: 70px; /* Space for bottom auth container */
     }
 
     .movies-section,
     .series-section {
         padding: 1rem;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     }
 
     .watchlist-grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem; /* Reduced gap for mobile */
+    }
+
+    /* Modal improvements for all devices */
+    .modal-content {
+        margin: env(safe-area-inset-top, 10%) auto env(safe-area-inset-bottom, 10%);
+        padding: 1rem;
+        width: 95%;
+        max-height: 85vh; /* Slightly reduced to prevent overflow issues */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        position: relative;
+        border-radius: 12px; /* More natural on mobile */
+    }
+
+    /* Safe area handling for notched devices */
+    @supports(padding: max(0px)) {
+        .modal-content {
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+    }
+
+    /* Input handling for iOS and Android */
+    .modal input,
+    .modal textarea,
+    .search-bar input {
+        font-size: 16px; /* Prevent iOS zoom */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        padding: 12px;
+        margin: 0; /* Remove iOS default margins */
+        border-radius: 8px; /* More touch-friendly */
+        background-color: var(--color-background);
+        color: var(--color-text);
+        /* Prevent iOS styling */
+        border: 1px solid var(--color-border);
+        outline: none;
+    }
+
+    /* Specific iOS input fixes */
+    input[type="text"],
+    input[type="number"],
+    textarea {
+        line-height: normal !important; /* Fix iOS line-height */
+        border-radius: 8px !important; /* Ensure border-radius on iOS */
+    }
+
+    /* Android Chrome specific fixes */
+    input:-webkit-autofill,
+    textarea:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 30px var(--color-background) inset !important;
+        -webkit-text-fill-color: var(--color-text) !important;
+    }
+
+    /* Ensure proper padding when virtual keyboard is active */
+    .modal-content.keyboard-open {
+        padding-bottom: 50vh;
+    }
+
+    /* Better touch targets */
+    .close {
+        padding: 15px;
+        font-size: 24px;
+        right: 5px;
+        top: 5px;
+    }
+
+    .search-bar {
+        flex-direction: column;
+    }
+
+    .search-bar button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 8px;
+    }
+
+    /* Enhanced mobile suggestion dropdown */
+    .suggestions-dropdown {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-height: 60vh;
+        height: auto;
+        border-radius: 15px 15px 0 0;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+        background-color: var(--color-background);
+        transform: translateZ(0); /* Force GPU acceleration */
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        z-index: 1000;
+    }
+
+    /* Handle notched devices */
+    @supports(padding: max(0px)) {
+        .suggestions-dropdown {
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+    }
+
+    .suggestions-close {
+        position: sticky;
+        top: 0;
+        padding: 10px;
+        background-color: var(--color-background);
+        border-bottom: 1px solid var(--color-border);
+        z-index: 1001;
+        /* Add pull indicator */
+        &::before {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 4px;
+            background-color: var(--color-border);
+            border-radius: 2px;
+            margin: 0 auto 8px;
+        }
+    }
+
+    .suggestions-close button {
+        width: 100%;
+        padding: 10px;
+        background-color: var(--color-border-dark);
+        color: var(--color-text);
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    /* Prevent body scroll when suggestions are open */
+    body.suggestions-open {
+        overflow: hidden;
+    }
+
+    .suggestion-item {
+        padding: 15px;
+    }
+
+    /* Better scrolling experience */
+    .watchlist-grid {
+        -webkit-overflow-scrolling: touch;
+        max-height: none;
+    }
+
+    /* Adjust auth container position */
+    .auth-container {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        border-radius: 15px 15px 0 0;
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
     }
 }

@@ -33,6 +33,67 @@ window.onclick = (e) => {
     }
 };
 
+// Enhanced mobile input handling
+let originalScrollTop = 0;
+let isKeyboardOpen = false;
+
+// Handle virtual keyboard
+function handleVirtualKeyboard() {
+    const visualViewport = window.visualViewport;
+    
+    if (visualViewport) {
+        visualViewport.addEventListener('resize', () => {
+            const modalContent = document.querySelector('.modal-content');
+            if (!modalContent) return;
+
+            if (visualViewport.height < window.innerHeight) {
+                // Keyboard is likely open
+                isKeyboardOpen = true;
+                modalContent.classList.add('keyboard-open');
+                // Store original scroll position if not already stored
+                if (originalScrollTop === 0) {
+                    originalScrollTop = window.scrollY;
+                }
+            } else {
+                // Keyboard is likely closed
+                isKeyboardOpen = false;
+                modalContent.classList.remove('keyboard-open');
+                // Restore original scroll position
+                if (originalScrollTop > 0) {
+                    window.scrollTo(0, originalScrollTop);
+                    originalScrollTop = 0;
+                }
+            }
+        });
+    }
+}
+
+// iOS specific focus handling
+document.addEventListener('touchstart', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const elementRect = e.target.getBoundingClientRect();
+        const elementTop = elementRect.top;
+        
+        // Wait for virtual keyboard
+        setTimeout(() => {
+            if (elementTop > viewportHeight * 0.5) {
+                e.target.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center'
+                });
+            }
+        }, 300);
+    }
+});
+
+// Close suggestions on outside click
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-container')) {
+        suggestionsDropdown.style.display = 'none';
+    }
+});
+
 movieSearch.addEventListener('input', () => filterItems('movies'));
 seriesSearch.addEventListener('input', () => filterItems('series'));
 
@@ -101,6 +162,19 @@ async function getMovieDetails(imdbID) {
 function displaySuggestions(results) {
     suggestionsDropdown.innerHTML = '';
     
+    // Add a close button for mobile
+    const closeButton = document.createElement('div');
+    closeButton.className = 'suggestions-close';
+    closeButton.innerHTML = '<button type="button">Close Suggestions</button>';
+    closeButton.onclick = () => {
+        suggestionsDropdown.style.display = 'none';
+        // On mobile, we want to blur the input to hide the keyboard
+        if (window.innerWidth <= 768) {
+            searchInput.blur();
+        }
+    };
+    suggestionsDropdown.appendChild(closeButton);
+    
     results.forEach(item => {
         const div = document.createElement('div');
         div.className = 'suggestion-item';
@@ -115,11 +189,24 @@ function displaySuggestions(results) {
             </div>
         `;
         
-        div.addEventListener('click', () => selectMovie(item.imdbID));
+        div.addEventListener('click', () => {
+            selectMovie(item.imdbID);
+            // On mobile, blur the input after selection
+            if (window.innerWidth <= 768) {
+                searchInput.blur();
+            }
+        });
         suggestionsDropdown.appendChild(div);
     });
     
     suggestionsDropdown.style.display = 'block';
+    
+    // On mobile, scroll to show suggestions
+    if (window.innerWidth <= 768) {
+        setTimeout(() => {
+            suggestionsDropdown.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+    }
 }
 
 async function selectMovie(imdbID) {
@@ -149,6 +236,8 @@ function resetModal() {
     selectedItem.style.display = 'none';
     suggestionsDropdown.style.display = 'none';
     searchInput.value = '';
+    // Remove focus from any active input
+    document.activeElement?.blur();
 }
 
 function createWatchlistItem(item) {
