@@ -1,12 +1,12 @@
 // GitHub Configuration
 export const GITHUB_API_URL = 'https://api.github.com';
 export const GITHUB_OAUTH_URL = 'https://github.com/login/oauth/authorize';
+export const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 export const GITHUB_CLIENT_ID = 'Ov23livEBhhIbW4Vf2TS';
+export const GITHUB_CLIENT_SECRET = 'b5c84876b099c843967dc88cd67062e90f2c5d9f'; // Note: In production, this should be kept secret
 export const REDIRECT_URI = 'https://saur-hub.github.io/watchlist.html';
 
-// Polling configuration
-const POLL_INTERVAL = 5000; // 5 seconds
-const MAX_POLL_ATTEMPTS = 12; // 1 minute total
+// Repository configuration
 const REPO_OWNER = 'Saur-Hub';
 const REPO_NAME = 'Saur-Hub.github.io';
 const DATA_FILE_PATH = 'assets/data/watchlist.json';
@@ -47,24 +47,34 @@ export async function initializeAuth() {
             }
             sessionStorage.removeItem('oauth_state');
 
-            // Exchange code for access token using GitHub API
-            const tokenResponse = await fetch('https://api.github.com/app/installations/token', {
+            // Exchange code for access token using GitHub OAuth
+            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+            const tokenResponse = await fetch(proxyUrl + GITHUB_TOKEN_URL, {
                 method: 'POST',
                 headers: {
-                    'Accept': 'application/vnd.github.v3+json',
+                    'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     client_id: GITHUB_CLIENT_ID,
-                    code: code
+                    client_secret: GITHUB_CLIENT_SECRET,
+                    code: code,
+                    redirect_uri: REDIRECT_URI
                 })
             });
 
-            if (!tokenResponse.ok) {
-                throw new Error('Failed to exchange code for token');
+            const data = await tokenResponse.json();
+            
+            if (data.error) {
+                console.error('OAuth error:', data.error_description || data.error);
+                throw new Error(data.error_description || data.error);
             }
 
-            const data = await tokenResponse.json();
+            if (!data.access_token) {
+                console.error('No access token in response:', data);
+                throw new Error('Invalid token response');
+            }
+
             accessToken = data.access_token;
             sessionStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
             await loadUserData();
@@ -215,7 +225,9 @@ async function loadUserData() {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            console.error('GitHub API error:', response.status, errorData);
+            throw new Error(`GitHub API error: ${response.status} ${errorData.message || 'Unknown error'}`);
         }
 
         userData = await response.json();
@@ -241,7 +253,9 @@ async function loadUserData() {
         });
 
         if (!repoResponse.ok) {
-            throw new Error('No access to repository');
+            const errorData = await repoResponse.json().catch(() => ({}));
+            console.error('Repository access error:', repoResponse.status, errorData);
+            throw new Error(`Repository access error: ${repoResponse.status} ${errorData.message || 'No access to repository'}`);
         }
 
         console.log('Repository access verified');
@@ -340,7 +354,9 @@ export async function saveWatchlistData() {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to save watchlist data');
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Failed to save watchlist data:', response.status, errorData);
+            throw new Error(`Failed to save watchlist data: ${response.status} ${errorData.message || 'Unknown error'}`);
         }
     } catch (error) {
         console.error('Error saving watchlist data:', error);
