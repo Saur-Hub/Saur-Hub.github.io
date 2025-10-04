@@ -1,8 +1,8 @@
 // GitHub Configuration
 export const GITHUB_API_URL = 'https://api.github.com';
-export const GITHUB_DEVICE_CODE_URL = 'https://github.com/login/device/code';
-export const GITHUB_ACCESS_TOKEN_URL = 'https://github.com/login/oauth/access_token';
+export const GITHUB_OAUTH_URL = 'https://github.com/login/oauth/authorize';
 export const GITHUB_CLIENT_ID = 'Ov23livEBhhIbW4Vf2TS';
+export const REDIRECT_URI = 'https://saur-hub.github.io/watchlist.html';
 
 // Polling configuration
 const POLL_INTERVAL = 5000; // 5 seconds
@@ -34,6 +34,46 @@ export async function initializeAuth() {
             return;
         }
 
+        // Check for OAuth callback
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        
+        if (code && state) {
+            // Verify state parameter
+            const savedState = sessionStorage.getItem('oauth_state');
+            if (state !== savedState) {
+                throw new Error('Invalid state parameter');
+            }
+            sessionStorage.removeItem('oauth_state');
+
+            // Exchange code for access token using GitHub API
+            const tokenResponse = await fetch('https://api.github.com/app/installations/token', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    client_id: GITHUB_CLIENT_ID,
+                    code: code
+                })
+            });
+
+            if (!tokenResponse.ok) {
+                throw new Error('Failed to exchange code for token');
+            }
+
+            const data = await tokenResponse.json();
+            accessToken = data.access_token;
+            sessionStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
+            await loadUserData();
+            
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return;
+        }
+
         // If we get here, no valid token was found
         console.log('No existing access token found');
         document.getElementById('login-button').style.display = 'inline-flex';
@@ -45,40 +85,29 @@ export async function initializeAuth() {
     }
 }
 
-export async function handleLogin() {
-    console.log('Initiating GitHub device flow...');
+export function handleLogin() {
+    console.log('Initiating GitHub OAuth flow...');
     try {
         // Clear any existing tokens
         sessionStorage.removeItem(TOKEN_STORAGE_KEY);
         
-        // Request device and user codes using GitHub's OAuth proxy
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-        const deviceCodeResponse = await fetch(proxyUrl + GITHUB_DEVICE_CODE_URL, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                client_id: GITHUB_CLIENT_ID,
-                scope: 'repo,user'
-            })
+        // Generate a random state value for security
+        const state = Math.random().toString(36).substring(7);
+        sessionStorage.setItem('oauth_state', state);
+        
+        // Build the OAuth URL
+        const params = new URLSearchParams({
+            client_id: GITHUB_CLIENT_ID,
+            redirect_uri: REDIRECT_URI,
+            scope: 'repo,user',
+            state: state
         });
-
-        if (!deviceCodeResponse.ok) {
-            throw new Error('Failed to initialize device flow');
-        }
-
-        const deviceData = await deviceCodeResponse.json();
         
-        // Show verification UI
-        showVerificationUI(deviceData.verification_uri, deviceData.user_code);
-        
-        // Start polling for token
-        await pollForToken(deviceData.device_code, deviceData.interval || 5);
+        // Redirect to GitHub OAuth
+        window.location.href = `${GITHUB_OAUTH_URL}?${params.toString()}`;
     } catch (error) {
         console.error('Login failed:', error);
-        alert('Login failed: Please visit https://cors-anywhere.herokuapp.com/corsdemo first to enable the CORS proxy, then try again.');
+        alert('Login failed: ' + (error.message || 'Please try again'));
         handleLogout();
     }
 }
