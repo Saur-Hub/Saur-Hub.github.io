@@ -1,6 +1,16 @@
 {
   "movies": [
     {
+      "title": "Spider-Man",
+      "year": "2002",
+      "imdbRating": "7.4",
+      "imdbId": "tt0145487",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BZWM0OWVmNTEtNWVkOS00MzgyLTkyMzgtMmE2ZTZiNjY4MmFiXkEyXkFqcGc@._V1_SX300.jpg",
+      "notes": "",
+      "type": "movie",
+      "addedAt": "2025-10-04T16:25:24.975Z"
+    },
+    {
       "title": "The Green Mile",
       "year": "1999",
       "imdbRating": "8.6",
