@@ -2,6 +2,7 @@
 const GITHUB_API_URL = 'https://api.github.com';
 const GITHUB_OAUTH_URL = 'https://github.com/login/oauth/authorize';
 const GITHUB_CLIENT_ID = 'Ov23livEBhhIbW4Vf2TS';
+const GITHUB_CLIENT_SECRET = '66c8878f332bae8d621a0637bf58988ff9ef0d0e'; // Add your client secret here
 const GITHUB_REDIRECT_URI = 'https://saur-hub.github.io/watchlist.html';
 const REPO_OWNER = 'Saur-Hub';
 const REPO_NAME = 'Saur-Hub.github.io';
@@ -104,15 +105,42 @@ async function handleOAuthCallback(code) {
 
         console.log('State validation successful, setting up GitHub API access...');
         
-        // Store the code as our access token
-        accessToken = code;
-        
+        // Exchange the code for an access token
+        console.log('Exchanging code for access token...');
+        const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                client_id: GITHUB_CLIENT_ID,
+                client_secret: GITHUB_CLIENT_SECRET,
+                code: code,
+                redirect_uri: GITHUB_REDIRECT_URI
+            })
+        });
+
+        if (!tokenResponse.ok) {
+            throw new Error('Failed to exchange code for access token');
+        }
+
+        const tokenData = await tokenResponse.json();
+        if (tokenData.error) {
+            throw new Error(`Token exchange failed: ${tokenData.error_description || tokenData.error}`);
+        }
+
+        accessToken = tokenData.access_token;
+        if (!accessToken) {
+            throw new Error('No access token received from GitHub');
+        }
+
         // Test the token with a simple API call
         console.log('Testing token with GitHub API...');
         const testResponse = await fetch(`${GITHUB_API_URL}/user`, {
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `token ${accessToken}`
+                'Authorization': `Bearer ${accessToken}`
             }
         });
         
