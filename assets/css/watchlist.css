@@ -382,6 +382,103 @@ header nav {
     flex: 1;
 }
 
+/* Suggestions actions row */
+.suggestions-actions {
+    border-top: 1px solid var(--color-border);
+    padding: 8px 10px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    background: linear-gradient(180deg, rgba(127,90,240,0.02), transparent);
+}
+
+.suggestions-actions button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.suggestions-actions .add-selected-btn {
+    background-color: #7f5af0;
+    color: #fff;
+}
+
+.suggestions-actions .clear-selected-btn {
+    background-color: var(--color-border-dark);
+    color: var(--color-text);
+}
+
+.suggestions-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Small spinner for loading state */
+.btn-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    vertical-align: middle;
+    margin-left: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Toast system styles */
+.toast-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10001;
+}
+
+.toast {
+    background: rgba(34,34,34,0.95);
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.toast .toast-close {
+    margin-left: 12px;
+    opacity: 0.9;
+}
+
+/* Spinner variant for light buttons (when darker spinner needed) */
+.add-selected-btn .btn-spinner,
+.add-content-btn .btn-spinner {
+    border: 2px solid rgba(255,255,255,0.25);
+    border-top-color: rgba(255,255,255,0.95);
+}
+
+.clear-selected-btn .btn-spinner {
+    border: 2px solid rgba(0,0,0,0.12);
+    border-top-color: rgba(0,0,0,0.6);
+}
+
+/* Highlight newly added items */
+.watchlist-item.new-item {
+    animation: newItemHighlight 4s ease forwards;
+}
+
+@keyframes newItemHighlight {
+    0% { box-shadow: 0 6px 18px rgba(127,90,240,0.25); background-color: rgba(127,90,240,0.06); }
+    60% { box-shadow: 0 6px 18px rgba(127,90,240,0.12); background-color: rgba(127,90,240,0.03); }
+    100% { box-shadow: none; background-color: var(--color-background); }
+}
+
 .suggestion-title {
     color: var(--color-text);
     font-size: 1rem;

@@ -209,28 +209,149 @@ function displaySuggestions(results) {
     };
     suggestionsDropdown.appendChild(closeButton);
     
+    // Container for selection actions
+    const actions = document.createElement('div');
+    actions.className = 'suggestions-actions';
+    actions.style.cssText = 'display:flex;justify-content:flex-end;padding:6px;gap:8px;';
+
+    const addSelectedBtn = document.createElement('button');
+    addSelectedBtn.type = 'button';
+    addSelectedBtn.textContent = 'Add selected';
+    addSelectedBtn.className = 'add-selected-btn';
+    addSelectedBtn.style.cssText = 'padding:6px 10px;background:#2b6cb0;color:#fff;border-radius:4px;border:none;cursor:pointer;';
+
+    const clearSelectedBtn = document.createElement('button');
+    clearSelectedBtn.type = 'button';
+    clearSelectedBtn.textContent = 'Clear';
+    clearSelectedBtn.className = 'clear-selected-btn';
+    clearSelectedBtn.style.cssText = 'padding:6px 10px;background:#e2e8f0;color:#111;border-radius:4px;border:none;cursor:pointer;';
+
+    actions.appendChild(clearSelectedBtn);
+    actions.appendChild(addSelectedBtn);
+    suggestionsDropdown.appendChild(actions);
+
     results.forEach(item => {
         const div = document.createElement('div');
         div.className = 'suggestion-item';
-        
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.gap = '8px';
+
         const posterUrl = item.Poster !== 'N/A' ? item.Poster : 'assets/imgs/no-poster.png';
-        
-        div.innerHTML = `
+
+        // Checkbox for multi-select
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'suggest-select';
+        checkbox.dataset.imdb = item.imdbID;
+
+        const inner = document.createElement('div');
+        inner.style.display = 'flex';
+        inner.style.alignItems = 'center';
+        inner.innerHTML = `
             <img src="${posterUrl}" alt="${item.Title}" class="suggestion-poster">
             <div class="suggestion-info">
                 <div class="suggestion-title">${item.Title}</div>
                 <div class="suggestion-year">${item.Year}</div>
             </div>
         `;
-        
-        div.addEventListener('click', () => {
+
+        // Click on the info selects single item (old behavior)
+        inner.addEventListener('click', () => {
             selectMovie(item.imdbID);
-            // On mobile, blur the input after selection
-            if (window.innerWidth <= 768) {
-                searchInput.blur();
+            if (window.innerWidth <= 768) searchInput.blur();
+        });
+
+        div.appendChild(checkbox);
+        div.appendChild(inner);
+
+        suggestionsDropdown.appendChild(div);
+    });
+
+    // Clear selection handler
+    clearSelectedBtn.addEventListener('click', () => {
+        const boxes = suggestionsDropdown.querySelectorAll('.suggest-select');
+        boxes.forEach(b => b.checked = false);
+    });
+
+    // Bulk add handler
+    addSelectedBtn.addEventListener('click', async () => {
+        const boxes = suggestionsDropdown.querySelectorAll('.suggest-select:checked');
+            if (!boxes.length) {
+                showToast('No items selected', 2000);
+                return;
+            }
+
+        // Ensure the user is authenticated and is repo owner
+        if (!accessToken || !userData || userData.login !== REPO_OWNER) {
+            showToast('You must be logged in as the repository owner to add items', 3000);
+            return;
+        }
+
+        const imdbIds = Array.from(boxes).map(b => b.dataset.imdb);
+
+    // Fetch details for each selected item in parallel
+    setButtonLoading(addSelectedBtn, true);
+    const detailPromises = imdbIds.map(id => getMovieDetails(id));
+    const details = await Promise.all(detailPromises);
+
+        // Add items, dedupe by title+year
+        let addedCount = 0;
+        details.forEach(d => {
+            if (!d) return;
+            const listType = d.Type === 'movie' ? 'movies' : 'series';
+            const candidate = {
+                title: d.Title,
+                year: d.Year,
+                imdbRating: d.imdbRating,
+                imdbId: d.imdbID,
+                posterUrl: d.Poster,
+                notes: '',
+                type: d.Type,
+                addedAt: new Date().toISOString()
+            };
+
+            // Dedupe: check existing items by title + year
+            const exists = watchlistData[listType].some(it => {
+                return it.title === candidate.title && it.year === candidate.year;
+            });
+            if (!exists) {
+                candidate._new = true;
+                watchlistData[listType].push(candidate);
+                addedCount += 1;
             }
         });
-        suggestionsDropdown.appendChild(div);
+
+        if (addedCount === 0) {
+            showToast('No new items were added (duplicates skipped)', 2500);
+            addSelectedBtn.disabled = false;
+            setButtonLoading(addSelectedBtn, false);
+            return;
+        }
+
+        // Sort lists by release year (newest first). Extract numeric year where possible
+        ['movies', 'series'].forEach(type => {
+            watchlistData[type].sort((a, b) => {
+                const ay = parseInt((a.year || '').toString().slice(0,4)) || 0;
+                const by = parseInt((b.year || '').toString().slice(0,4)) || 0;
+                return by - ay; // newest first
+            });
+        });
+
+        // Save once
+        try {
+            await scheduleSave(watchlistData);
+            showToast(`Added ${addedCount} item(s)` , 2000);
+            renderWatchlist('movies');
+            renderWatchlist('series');
+            suggestionsDropdown.style.display = 'none';
+        } catch (err) {
+            console.error('Bulk save failed:', err);
+            showToast('Failed to save selected items. Please try again.', 3500);
+        } finally {
+            addSelectedBtn.disabled = false;
+            setButtonLoading(addSelectedBtn, false);
+        }
     });
     
     suggestionsDropdown.style.display = 'block';
@@ -277,6 +398,10 @@ function resetModal() {
 function createWatchlistItem(item) {
     const div = document.createElement('div');
     div.className = 'watchlist-item';
+    // If item was recently added, add highlight class
+    if (item._new) {
+        div.classList.add('new-item');
+    }
     const posterUrl = item.posterUrl !== 'N/A' ? item.posterUrl : 'assets/imgs/no-poster.png';
     
     div.innerHTML = `
@@ -296,6 +421,19 @@ function createWatchlistItem(item) {
         ${item.notes ? `<div class="notes">${item.notes}</div>` : ''}
     `;
     return div;
+}
+
+// Utility: parse the year from strings like "2019" or "2019–" or "2019-2021"
+export function parseYear(yearStr) {
+    if (!yearStr) return 0;
+    const match = yearStr.toString().match(/(\d{4})/);
+    return match ? parseInt(match[1], 10) : 0;
+}
+
+// Utility: check duplicate by title + year in a list
+export function isDuplicate(list, candidate) {
+    if (!Array.isArray(list)) return false;
+    return list.some(it => (it.title === candidate.title && it.year === candidate.year));
 }
 
 function filterItems(type) {
@@ -319,6 +457,17 @@ function renderWatchlist(type, items) {
     source.forEach(item => {
         grid.appendChild(createWatchlistItem(item));
     });
+
+    // Remove _new flags after a short highlight duration
+    setTimeout(() => {
+        source.forEach(it => {
+            if (it._new) delete it._new;
+        });
+        // Re-render to clear highlight class
+        // Only re-render if the grid still matches (avoid flicker for other tabs)
+        // We update DOM entries directly by re-rendering the type
+        grid.querySelectorAll('.new-item').forEach(el => el.classList.remove('new-item'));
+    }, 4000); // 4s highlight
 }
 
 // Form submission
@@ -327,7 +476,7 @@ addForm.addEventListener('submit', async (e) => {
     
     // Check if user is authenticated and is repo owner
     if (!accessToken || !userData || userData.login !== REPO_OWNER) {
-        alert('You must be logged in as the repository owner to add items');
+        showToast('You must be logged in as the repository owner to add items', 3000);
         return;
     }
     
@@ -340,12 +489,7 @@ addForm.addEventListener('submit', async (e) => {
     const imdbId = document.getElementById('imdb-id').value;
     
     if (!title || !year || !imdbId) {
-        alert('Please select a movie or TV show from the search results');
-        return;
-    }
-    
-    if (!title || !year) {
-        alert('Please select a movie or TV show from the search results');
+        showToast('Please select a movie or TV show from the search results', 2500);
         return;
     }
     
@@ -364,17 +508,29 @@ addForm.addEventListener('submit', async (e) => {
     };
     
     const listType = details.Type === 'movie' ? 'movies' : 'series';
+    // Disable submit button during save
+    const submitBtn = addForm.querySelector('button[type="submit"]');
+    if (submitBtn) setButtonLoading(submitBtn, true);
+
+    newItem._new = true;
     watchlistData[listType].push(newItem);
-    watchlistData[listType].sort((a, b) => b.addedAt.localeCompare(a.addedAt));
+    // Sort by release year (newest first). Handle ranges like "2019–" by taking the first 4 digits.
+    watchlistData[listType].sort((a, b) => {
+        const ay = parseInt((a.year || '').toString().slice(0,4)) || 0;
+        const by = parseInt((b.year || '').toString().slice(0,4)) || 0;
+        return by - ay;
+    });
     
     // Save to GitHub repository — use coalesced saver so multiple quick adds produce a single commit
-    scheduleSave(watchlistData).then((resp) => {
-        // Show minimal toast (50ms)
-        showToast('Saved', 50);
-    }).catch(err => {
+    try {
+        await scheduleSave(watchlistData);
+        showToast('Saved', 1500);
+    } catch (err) {
         console.error('Save failed:', err);
-        alert('Failed to save watchlist data. Please try again.');
-    });
+        showToast('Failed to save watchlist data. Please try again.', 3500);
+    } finally {
+        if (submitBtn) setButtonLoading(submitBtn, false);
+    }
     renderWatchlist(listType);
     
     modal.style.display = 'none';
@@ -422,13 +578,61 @@ function scheduleSave(data) {
 }
 
 // Tiny toast helper
-function showToast(message, duration = 50) {
+// Button loading helper: toggles disabled state and spinner insertion
+function setButtonLoading(button, loading) {
+    if (!button) return;
+    if (loading) {
+        button.disabled = true;
+        button.dataset.loading = 'true';
+        if (!button.querySelector('.btn-spinner')) {
+            const spinner = document.createElement('span');
+            spinner.className = 'btn-spinner';
+            // keep spinner accessible
+            spinner.setAttribute('aria-hidden', 'true');
+            button.appendChild(spinner);
+        }
+    } else {
+        button.disabled = false;
+        button.dataset.loading = 'false';
+        const spinner = button.querySelector('.btn-spinner');
+        if (spinner) spinner.remove();
+    }
+}
+
+// Richer toast system (stacked, dismissable)
+function showToast(message, duration = 2000, options = {}) {
+    // Create toast container if missing
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        container.style.cssText = 'position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:8px;z-index:10001;max-width:320px;';
+        document.body.appendChild(container);
+    }
+
     const toast = document.createElement('div');
-    toast.className = 'mini-toast';
+    toast.className = 'toast';
     toast.textContent = message;
-    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:6px 10px;border-radius:4px;z-index:10000;opacity:0.95;font-size:12px;';
-    document.body.appendChild(toast);
-    setTimeout(() => {
-        document.body.removeChild(toast);
-    }, duration);
+    toast.style.cssText = 'background:#222;color:#fff;padding:10px 12px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.2);font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px;';
+
+    if (options.dismissable !== false) {
+        const close = document.createElement('button');
+        close.className = 'toast-close';
+        close.innerHTML = '&#x2715;';
+        close.style.cssText = 'background:transparent;border:none;color:rgba(255,255,255,0.8);cursor:pointer;font-size:12px;padding:4px;';
+        close.addEventListener('click', () => {
+            toast.remove();
+        });
+        toast.appendChild(close);
+    }
+
+    container.appendChild(toast);
+
+    if (duration && duration > 0) {
+        setTimeout(() => {
+            toast.remove();
+        }, duration);
+    }
+
+    return toast;
 }
