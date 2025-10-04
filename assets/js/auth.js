@@ -105,21 +105,12 @@ async function handleOAuthCallback(code) {
 
         console.log('State validation successful, setting up GitHub API access...');
         
-        // Exchange the code for an access token
-        console.log('Exchanging code for access token...');
-        const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                client_id: GITHUB_CLIENT_ID,
-                client_secret: GITHUB_CLIENT_SECRET,
-                code: code,
-                redirect_uri: GITHUB_REDIRECT_URI
-            })
-        });
+        // Use code directly as token for GitHub API
+        console.log('Using OAuth code as token...');
+        accessToken = code;
+
+        // For GitHub Pages, we'll use the code directly since we can't do server-side exchange
+        // This is a workaround for static hosting on GitHub Pages
 
         if (!tokenResponse.ok) {
             throw new Error('Failed to exchange code for access token');
@@ -140,7 +131,7 @@ async function handleOAuthCallback(code) {
         const testResponse = await fetch(`${GITHUB_API_URL}/user`, {
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `Bearer ${accessToken}`
+                'Authorization': `token ${accessToken}`
             }
         });
         
