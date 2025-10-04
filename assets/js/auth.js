@@ -19,28 +19,32 @@ document.addEventListener('DOMContentLoaded', initializeAuth);
 async function initializeAuth() {
     console.log('Initializing authentication...');
     
-    // Check for existing token in session storage
-    accessToken = sessionStorage.getItem(TOKEN_STORAGE_KEY);
-    if (accessToken) {
-        console.log('Found existing access token');
-        try {
+    try {
+        // Check for existing token in session storage
+        accessToken = sessionStorage.getItem(TOKEN_STORAGE_KEY);
+        if (accessToken) {
+            console.log('Found existing access token');
             await loadUserData();
-        } catch (error) {
-            console.error('Error loading user data:', error);
-            // If token is invalid, clear it and show login button
-            handleLogout();
+            return;
         }
-    } else {
+
+        // If we get here, no valid token was found
         console.log('No existing access token found');
         document.getElementById('login-button').style.display = 'inline-flex';
+        document.getElementById('user-info').style.display = 'none';
+        document.getElementById('add-button-container').style.display = 'none';
+    } catch (error) {
+        console.error('Error during auth initialization:', error);
+        handleLogout();
     }
 }
 
 async function handleLogin() {
     console.log('Initiating GitHub login...');
     try {
-        // Clear any existing tokens
+        // Clear any existing tokens and state
         sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+        sessionStorage.removeItem('oauth_state');
         
         // Generate a secure state parameter
         const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
@@ -48,10 +52,12 @@ async function handleLogin() {
             .join('');
             
         // Store state with timestamp
-        sessionStorage.setItem('oauth_state', JSON.stringify({
+        const stateData = {
             value: state,
             timestamp: Date.now()
-        }));
+        };
+        sessionStorage.setItem('oauth_state', JSON.stringify(stateData));
+        console.log('Generated state:', stateData);
 
         // Construct GitHub OAuth URL with parameters
         const params = new URLSearchParams({
@@ -62,13 +68,11 @@ async function handleLogin() {
             response_type: 'code'
         });
 
-        // Redirect to GitHub login page
-        // This will show GitHub's login page where users can:
-        // 1. Log in with username/password
-        // 2. Use their passkey if configured
-        // 3. Use 2FA if enabled
+        // Log the full auth URL for debugging
         const authUrl = `${GITHUB_OAUTH_URL}?${params.toString()}`;
-        console.log('Redirecting to GitHub login page...');
+        console.log('Redirecting to GitHub auth URL:', authUrl);
+        
+        // Redirect to GitHub login page
         window.location.href = authUrl;
     } catch (error) {
         console.error('Login failed:', error);
@@ -78,7 +82,7 @@ async function handleLogin() {
 }
 
 async function handleOAuthCallback(code) {
-    console.log('Processing OAuth callback...');
+    console.log('Processing OAuth callback with code:', code);
     
     try {
         // Verify state parameter
@@ -86,18 +90,25 @@ async function handleOAuthCallback(code) {
         const savedStateData = JSON.parse(sessionStorage.getItem('oauth_state') || '{}');
         sessionStorage.removeItem('oauth_state'); // Clear state after use
         
+        console.log('Validating state:', { 
+            received: state, 
+            saved: savedStateData.value, 
+            timestamp: savedStateData.timestamp 
+        });
+        
         // Verify state and check if it's not expired (10 minute window)
         if (!state || !savedStateData.value || state !== savedStateData.value || 
             Date.now() - savedStateData.timestamp > 600000) {
             throw new Error('Invalid or expired state parameter');
         }
 
-        console.log('Setting up GitHub API access...');
+        console.log('State validation successful, setting up GitHub API access...');
         
         // Store the code as our access token
         accessToken = code;
         
         // Test the token with a simple API call
+        console.log('Testing token with GitHub API...');
         const testResponse = await fetch(`${GITHUB_API_URL}/user`, {
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
@@ -110,10 +121,11 @@ async function handleOAuthCallback(code) {
         }
         
         // Parse the user data
-        const userData = await testResponse.json();
+        const userDataResponse = await testResponse.json();
+        console.log('Received user data:', userDataResponse.login);
         
         // Verify repository owner
-        if (userData.login !== REPO_OWNER) {
+        if (userDataResponse.login !== REPO_OWNER) {
             throw new Error('You must be the repository owner to access this application');
         }
         
