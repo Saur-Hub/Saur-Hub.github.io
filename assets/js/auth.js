@@ -1,7 +1,7 @@
 // GitHub Configuration
 export const GITHUB_API_URL = 'https://api.github.com';
-export const GITHUB_DEVICE_CODE_URL = 'https://gh-device-auth.azurewebsites.net/api/device/code';
-export const GITHUB_ACCESS_TOKEN_URL = 'https://gh-device-auth.azurewebsites.net/api/device/token';
+export const GITHUB_DEVICE_CODE_URL = 'https://github.com/login/device/code';
+export const GITHUB_ACCESS_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 export const GITHUB_CLIENT_ID = 'Ov23livEBhhIbW4Vf2TS';
 
 // Polling configuration
@@ -51,14 +51,13 @@ export async function handleLogin() {
         // Clear any existing tokens
         sessionStorage.removeItem(TOKEN_STORAGE_KEY);
         
-        // Request device and user codes
-        const deviceCodeResponse = await fetch(GITHUB_DEVICE_CODE_URL, {
+        // Request device and user codes using GitHub's OAuth proxy
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const deviceCodeResponse = await fetch(proxyUrl + GITHUB_DEVICE_CODE_URL, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Origin': window.location.origin,
-                'X-Requested-With': 'XMLHttpRequest'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 client_id: GITHUB_CLIENT_ID,
@@ -79,7 +78,7 @@ export async function handleLogin() {
         await pollForToken(deviceData.device_code, deviceData.interval || 5);
     } catch (error) {
         console.error('Login failed:', error);
-        alert('Login failed: ' + (error.message || 'Please try again'));
+        alert('Login failed: Please visit https://cors-anywhere.herokuapp.com/corsdemo first to enable the CORS proxy, then try again.');
         handleLogout();
     }
 }
@@ -113,16 +112,15 @@ function showVerificationUI(verificationUri, userCode) {
 
 async function pollForToken(deviceCode, interval) {
     let attempts = 0;
+    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
     
     while (attempts < MAX_POLL_ATTEMPTS) {
         try {
-            const response = await fetch(GITHUB_ACCESS_TOKEN_URL, {
+            const response = await fetch(proxyUrl + GITHUB_ACCESS_TOKEN_URL, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Origin': window.location.origin,
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     client_id: GITHUB_CLIENT_ID,
