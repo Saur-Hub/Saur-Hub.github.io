@@ -7,7 +7,7 @@ export const GITHUB_CLIENT_SECRET = '66c8878f332bae8d621a0637bf58988ff9ef0d0e'; 
 export const REDIRECT_URI = 'https://saur-hub.github.io/watchlist.html';
 
 // Repository configuration
-const REPO_OWNER = 'Saur-Hub';
+export const REPO_OWNER = 'Saur-Hub';
 const REPO_NAME = 'Saur-Hub.github.io';
 const DATA_FILE_PATH = 'assets/data/watchlist.json';
 
