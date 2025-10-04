@@ -1,5 +1,3 @@
-'use strict';
-
 // GitHub Configuration
 export const GITHUB_API_URL = 'https://api.github.com';
 export const GITHUB_DEVICE_CODE_URL = 'https://gh-device-auth.azurewebsites.net/api/device/code';
@@ -16,11 +14,13 @@ const DATA_FILE_PATH = 'assets/data/watchlist.json';
 // Token storage keys
 const TOKEN_STORAGE_KEY = 'github_token';
 
+// State
 export let accessToken = null;
 export let userData = null;
-
-// Initialize the page
-document.addEventListener('DOMContentLoaded', initializeAuth);
+export let watchlist = {
+    movies: [],
+    series: []
+};
 
 export async function initializeAuth() {
     console.log('Initializing authentication...');
@@ -173,124 +173,22 @@ async function pollForToken(deviceCode, interval) {
     throw new Error('Authentication timed out. Please try again.');
 }
 
-// Remove the old OAuth callback function since we're using device flow now
-    console.log('Processing OAuth callback with code:', code);
-    
-    try {
-        // Verify state parameter
-        const state = new URLSearchParams(window.location.search).get('state');
-        const savedStateData = JSON.parse(sessionStorage.getItem('oauth_state') || '{}');
-        sessionStorage.removeItem('oauth_state'); // Clear state after use
-        
-        console.log('Validating state:', { 
-            received: state, 
-            saved: savedStateData.value, 
-            timestamp: savedStateData.timestamp 
-        });
-        
-        // Verify state and check if it's not expired (10 minute window)
-        if (!state || !savedStateData.value || state !== savedStateData.value || 
-            Date.now() - savedStateData.timestamp > 600000) {
-            throw new Error('Invalid or expired state parameter');
-        }
-
-        console.log('State validation successful, setting up GitHub API access...');
-        
-        // Use code directly as token for GitHub API
-        console.log('Using OAuth code as token...');
-        accessToken = code;
-
-        // For GitHub Pages, we'll use the code directly since we can't do server-side exchange
-        // This is a workaround for static hosting on GitHub Pages
-
-        if (!tokenResponse.ok) {
-            throw new Error('Failed to exchange code for access token');
-        }
-
-        const tokenData = await tokenResponse.json();
-        if (tokenData.error) {
-            throw new Error(`Token exchange failed: ${tokenData.error_description || tokenData.error}`);
-        }
-
-        accessToken = tokenData.access_token;
-        if (!accessToken) {
-            throw new Error('No access token received from GitHub');
-        }
-
-        // Test the token with a simple API call
-        console.log('Testing token with GitHub API...');
-        const testResponse = await fetch(`${GITHUB_API_URL}/user`, {
-            headers: {
-                'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `token ${accessToken}`
-            }
-        });
-        
-        if (!testResponse.ok) {
-            throw new Error(`Failed to validate GitHub access: ${testResponse.status}`);
-        }
-        
-        // Parse the user data
-        const userDataResponse = await testResponse.json();
-        console.log('Received user data:', userDataResponse.login);
-        
-        // Verify repository owner
-        if (userDataResponse.login !== REPO_OWNER) {
-            throw new Error('You must be the repository owner to access this application');
-        }
-        
-        // Store the token and update UI
-        sessionStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
-        console.log('Authentication successful');
-        
-        // Load user data and initialize the application
-        await loadUserData();
-        
-        // Remove code and state from URL
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-    } catch (error) {
-        console.error('Authentication error:', error);
-        const errorMessage = error.message || 'Unknown error occurred';
-        
-        // Provide user-friendly error message
-        if (errorMessage.includes('401')) {
-            alert('Authentication failed: Your session has expired. Please log in again.');
-        } else if (errorMessage.includes('403')) {
-            alert('Authentication failed: Insufficient permissions. Please ensure you are the repository owner.');
-        } else {
-            alert(`Authentication failed: ${errorMessage}`);
-        }
-        
-        // Log detailed error information for debugging
-        console.log('Detailed error information:', {
-            message: error.message,
-            status: error.status,
-            stack: error.stack
-        });
-        
-        handleLogout();
-    }
-}
-
 async function loadUserData() {
     console.log('Loading user data...');
     try {
-        // Verify token exists
         if (!accessToken) {
             throw new Error('No access token available');
         }
 
         const response = await fetch(`${GITHUB_API_URL}/user`, {
             headers: {
-                'Authorization': `token ${accessToken}`, // Use 'token' prefix for GitHub API
+                'Authorization': `token ${accessToken}`,
                 'Accept': 'application/vnd.github.v3+json'
             }
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         userData = await response.json();
@@ -304,16 +202,13 @@ async function loadUserData() {
         
         // Show add button only if user is repo owner
         if (userData.login === REPO_OWNER) {
-            console.log('User is repo owner - enabling add functionality');
             document.getElementById('add-button-container').style.display = 'block';
-        } else {
-            console.log('User is not repo owner - add functionality disabled');
         }
         
         // Verify repository access
-        const repoResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`, {
+        const repoResponse = await fetch(`${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}`, {
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `token ${accessToken}`,
                 'Accept': 'application/vnd.github.v3+json'
             }
         });
@@ -346,13 +241,13 @@ export function handleLogout() {
     // Clear watchlist data
     watchlist.movies = [];
     watchlist.series = [];
-    renderWatchlist('movies');
-    renderWatchlist('series');
+    window.renderWatchlist?.('movies');
+    window.renderWatchlist?.('series');
 }
 
-async function loadWatchlistData() {
+export async function loadWatchlistData() {
     try {
-        const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
+        const response = await fetch(`${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
             headers: {
                 'Authorization': `token ${accessToken}`,
                 'Accept': 'application/vnd.github.v3+json'
@@ -361,35 +256,34 @@ async function loadWatchlistData() {
         
         if (response.status === 404) {
             // Create new watchlist file if it doesn't exist
-            return { movies: [], series: [] };
+            watchlist = { movies: [], series: [] };
+            return watchlist;
         }
         
         const data = await response.json();
         const content = atob(data.content);
-        const parsedData = JSON.parse(content);
+        watchlist = JSON.parse(content);
+        window.renderWatchlist?.('movies');
+        window.renderWatchlist?.('series');
         
-        // Update watchlist state
-        watchlist = parsedData;
-        renderWatchlist('movies');
-        renderWatchlist('series');
-        
-        return parsedData;
+        return watchlist;
     } catch (error) {
         console.error('Error loading watchlist data:', error);
-        return { movies: [], series: [] };
+        watchlist = { movies: [], series: [] };
+        return watchlist;
     }
 }
 
-async function saveWatchlistData() {
-    if (!accessToken || userData.login !== REPO_OWNER) return;
+export async function saveWatchlistData() {
+    if (!accessToken || userData?.login !== REPO_OWNER) return;
 
     try {
         // Get the current file (if it exists) to get the SHA
         let currentFile;
         try {
-            const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
+            const response = await fetch(`${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
                 headers: {
-                    'Authorization': `Bearer ${accessToken}`,
+                    'Authorization': `token ${accessToken}`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
@@ -409,7 +303,7 @@ async function saveWatchlistData() {
             body.sha = currentFile.sha;
         }
 
-        const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
+        const response = await fetch(`${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `token ${accessToken}`,

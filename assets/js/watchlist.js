@@ -6,6 +6,18 @@ import { initializeAuth, handleLogin, handleLogout } from './auth.js';
 window.handleLogin = handleLogin;
 window.handleLogout = handleLogout;
 
+'use strict';
+
+import { handleLogin, handleLogout, initializeAuth, watchlist, loadWatchlistData, saveWatchlistData } from './auth.js';
+
+// Make functions available globally
+window.handleLogin = handleLogin;
+window.handleLogout = handleLogout;
+window.watchlist = watchlist;
+window.renderWatchlist = renderWatchlist;
+window.saveWatchlistData = saveWatchlistData;
+window.loadWatchlistData = loadWatchlistData;
+
 // DOM Elements
 const moviesGrid = document.getElementById('movies-grid');
 const seriesGrid = document.getElementById('series-grid');

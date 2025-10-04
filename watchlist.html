@@ -36,13 +36,13 @@
 
     <!-- Auth container moved to bottom-right corner -->
     <div class="auth-container" id="auth-container">
-        <button id="login-button" class="github-login-btn" onclick="handleLogin()">
+        <button id="login-button" class="github-login-btn" onclick="window.handleLogin()">
             <i class="fab fa-github"></i> <span class="login-text">Login</span>
         </button>
         <div id="user-info" style="display: none;">
             <img id="user-avatar" src="" alt="User avatar" class="user-avatar">
             <span id="username"></span>
-            <button onclick="handleLogout()" class="logout-btn">
+            <button onclick="window.handleLogout()" class="logout-btn">
                 <i class="fas fa-sign-out-alt"></i>
             </button>
         </div>
@@ -110,6 +110,6 @@
         </div>
     </main>
 
-    <script type="module" src="assets/js/watchlist.js"></script>
+        <script type="module" src="assets/js/watchlist.js"></script>
 </body>
 </html>
