@@ -1,22 +1,14 @@
 'use strict';
 
-import { initializeAuth, handleLogin, handleLogout } from './auth.js';
-
-// Make functions available globally for HTML onclick handlers
-window.handleLogin = handleLogin;
-window.handleLogout = handleLogout;
-
-'use strict';
-
-import { handleLogin, handleLogout, initializeAuth, watchlist, loadWatchlistData, saveWatchlistData } from './auth.js';
+import { handleLogin, handleLogout, initializeAuth, loadWatchlistData, saveWatchlistData } from './auth.js';
 
 // Make functions available globally
 window.handleLogin = handleLogin;
 window.handleLogout = handleLogout;
-window.watchlist = watchlist;
 window.renderWatchlist = renderWatchlist;
 window.saveWatchlistData = saveWatchlistData;
 window.loadWatchlistData = loadWatchlistData;
+window.showAddModal = showAddModal;
 
 // DOM Elements
 const moviesGrid = document.getElementById('movies-grid');
@@ -37,9 +29,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // State
-let currentType = 'movie';
 let searchTimeout;
-let watchlist = {
+let watchlistData = {
     movies: JSON.parse(localStorage.getItem('movies') || '[]'),
     series: JSON.parse(localStorage.getItem('series') || '[]')
 };
@@ -61,39 +52,49 @@ window.onclick = (e) => {
 let originalScrollTop = 0;
 let isKeyboardOpen = false;
 
-// Handle virtual keyboard
+// Handle virtual keyboard positioning and view adjustments
 function handleVirtualKeyboard() {
     const visualViewport = window.visualViewport;
-    
-    if (visualViewport) {
-        visualViewport.addEventListener('resize', () => {
-            const modalContent = document.querySelector('.modal-content');
-            if (!modalContent) return;
+    if (!visualViewport) return;
 
-            if (visualViewport.height < window.innerHeight) {
-                // Keyboard is likely open
-                isKeyboardOpen = true;
-                modalContent.classList.add('keyboard-open');
-                // Store original scroll position if not already stored
-                if (originalScrollTop === 0) {
-                    originalScrollTop = window.scrollY;
-                }
-            } else {
-                // Keyboard is likely closed
-                isKeyboardOpen = false;
-                modalContent.classList.remove('keyboard-open');
-                // Restore original scroll position
-                if (originalScrollTop > 0) {
-                    window.scrollTo(0, originalScrollTop);
-                    originalScrollTop = 0;
-                }
-            }
-        });
+    // Remove any existing listener first to prevent duplicates
+    visualViewport.removeEventListener('resize', handleViewportResize);
+    visualViewport.addEventListener('resize', handleViewportResize);
+
+    // Handle iOS input focus
+    const modalContent = document.querySelector('.modal-content');
+    if (!modalContent) return;
+
+    modalContent.addEventListener('touchstart', handleTouchStart);
+}
+
+// Handle viewport resizing when keyboard shows/hides
+function handleViewportResize() {
+    const modalContent = document.querySelector('.modal-content');
+    if (!modalContent) return;
+
+    if (window.visualViewport.height < window.innerHeight) {
+        // Keyboard is likely open
+        isKeyboardOpen = true;
+        modalContent.classList.add('keyboard-open');
+        // Store original scroll position if not already stored
+        if (originalScrollTop === 0) {
+            originalScrollTop = window.scrollY;
+        }
+    } else {
+        // Keyboard is likely closed
+        isKeyboardOpen = false;
+        modalContent.classList.remove('keyboard-open');
+        // Restore original scroll position
+        if (originalScrollTop > 0) {
+            window.scrollTo(0, originalScrollTop);
+            originalScrollTop = 0;
+        }
     }
 }
 
-// iOS specific focus handling
-document.addEventListener('touchstart', function(e) {
+// Handle iOS input focus positioning
+function handleTouchStart(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
         const elementRect = e.target.getBoundingClientRect();
@@ -109,7 +110,7 @@ document.addEventListener('touchstart', function(e) {
             }
         }, 300);
     }
-});
+}
 
 // Close suggestions on outside click
 document.addEventListener('click', (e) => {
@@ -142,19 +143,13 @@ searchInput.addEventListener('input', (e) => {
 });
 
 // Functions
-function addMovie() {
-    currentType = 'movie';
-    openModal();
-}
-
-function addSeries() {
-    currentType = 'series';
-    openModal();
-}
-
-function openModal() {
+function showAddModal() {
+    // Show the modal and reset form
     modal.style.display = 'block';
     addForm.reset();
+    
+    // Initialize virtual keyboard handling
+    handleVirtualKeyboard();
 }
 
 async function searchMovies(query) {
@@ -295,7 +290,7 @@ function createWatchlistItem(item) {
 function filterItems(type) {
     const searchInput = type === 'movies' ? movieSearch : seriesSearch;
     const query = searchInput.value.toLowerCase();
-    const items = watchlist[type];
+    const items = watchlistData[type];
     
     const filtered = items.filter(item => 
         item.title.toLowerCase().includes(query) || 
@@ -305,7 +300,7 @@ function filterItems(type) {
     renderWatchlist(type, filtered);
 }
 
-function renderWatchlist(type, items = watchlist[type]) {
+function renderWatchlist(type, items = watchlistData[type]) {
     const grid = type === 'movies' ? moviesGrid : seriesGrid;
     grid.innerHTML = '';
     items.forEach(item => {
@@ -330,6 +325,11 @@ addForm.addEventListener('submit', async (e) => {
     const posterUrl = document.getElementById('poster-url').value;
     const imdbId = document.getElementById('imdb-id').value;
     
+    if (!title || !year || !imdbId) {
+        alert('Please select a movie or TV show from the search results');
+        return;
+    }
+    
     if (!title || !year) {
         alert('Please select a movie or TV show from the search results');
         return;
@@ -350,8 +350,8 @@ addForm.addEventListener('submit', async (e) => {
     };
     
     const listType = details.Type === 'movie' ? 'movies' : 'series';
-    watchlist[listType].push(newItem);
-    watchlist[listType].sort((a, b) => b.addedAt.localeCompare(a.addedAt));
+    watchlistData[listType].push(newItem);
+    watchlistData[listType].sort((a, b) => b.addedAt.localeCompare(a.addedAt));
     
     // Save to GitHub repository
     await saveWatchlistData();
