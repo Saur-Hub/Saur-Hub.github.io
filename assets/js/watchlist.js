@@ -1,6 +1,6 @@
 'use strict';
 
-import { handleLogin, handleLogout, initializeAuth, loadWatchlistData, saveWatchlistData, accessToken, userData } from './auth.js';
+import { handleLogin, handleLogout, initializeAuth, loadWatchlistData, saveWatchlistData, accessToken, userData, REPO_OWNER } from './auth.js';
 
 // Make functions available globally
 window.handleLogin = handleLogin;
