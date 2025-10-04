@@ -1,5 +1,11 @@
 'use strict';
 
+import { initializeAuth, handleLogin, handleLogout } from './auth.js';
+
+// Make functions available globally for HTML onclick handlers
+window.handleLogin = handleLogin;
+window.handleLogout = handleLogout;
+
 // DOM Elements
 const moviesGrid = document.getElementById('movies-grid');
 const seriesGrid = document.getElementById('series-grid');

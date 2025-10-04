@@ -1,8 +1,10 @@
+'use strict';
+
 // GitHub Configuration
-const GITHUB_API_URL = 'https://api.github.com';
-const GITHUB_DEVICE_CODE_URL = 'https://gh-device-auth.azurewebsites.net/api/device/code';
-const GITHUB_ACCESS_TOKEN_URL = 'https://gh-device-auth.azurewebsites.net/api/device/token';
-const GITHUB_CLIENT_ID = 'Ov23livEBhhIbW4Vf2TS';
+export const GITHUB_API_URL = 'https://api.github.com';
+export const GITHUB_DEVICE_CODE_URL = 'https://gh-device-auth.azurewebsites.net/api/device/code';
+export const GITHUB_ACCESS_TOKEN_URL = 'https://gh-device-auth.azurewebsites.net/api/device/token';
+export const GITHUB_CLIENT_ID = 'Ov23livEBhhIbW4Vf2TS';
 
 // Polling configuration
 const POLL_INTERVAL = 5000; // 5 seconds
@@ -14,13 +16,13 @@ const DATA_FILE_PATH = 'assets/data/watchlist.json';
 // Token storage keys
 const TOKEN_STORAGE_KEY = 'github_token';
 
-let accessToken = null;
-let userData = null;
+export let accessToken = null;
+export let userData = null;
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', initializeAuth);
 
-async function initializeAuth() {
+export async function initializeAuth() {
     console.log('Initializing authentication...');
     
     try {
@@ -43,7 +45,7 @@ async function initializeAuth() {
     }
 }
 
-async function handleLogin() {
+export async function handleLogin() {
     console.log('Initiating GitHub device flow...');
     try {
         // Clear any existing tokens
@@ -331,7 +333,7 @@ async function loadUserData() {
     }
 }
 
-function handleLogout() {
+export function handleLogout() {
     accessToken = null;
     userData = null;
     sessionStorage.removeItem(TOKEN_STORAGE_KEY);
