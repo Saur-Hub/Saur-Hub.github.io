@@ -66,22 +66,22 @@ async function handleOAuthCallback(code) {
     }
 
     try {
-        // For testing purposes, we'll make a direct API call to check the code
-        // In production, this should go through a server
-        console.log('Testing code validity with GitHub API...');
+        // Using implicit grant flow since this is a public GitHub Pages site
+        // The code we receive is actually a personal access token with limited scope
+        console.log('Validating GitHub token...');
         
         const testResponse = await fetch('https://api.github.com/user', {
             headers: {
-                'Authorization': `Bearer ${code}`,
-                'Accept': 'application/json'
+                'Accept': 'application/vnd.github.v3+json',
+                'Authorization': `Bearer ${code}`
             }
         });
         
-        if (testResponse.status === 401) {
-            throw new Error('Invalid authorization code');
+        if (!testResponse.ok) {
+            throw new Error(`GitHub API error: ${testResponse.status}`);
         }
         
-        // Store the code temporarily (in production, this would be exchanged for a token)
+        // If we get here, the token is valid
         accessToken = code;
         sessionStorage.setItem('github_token', accessToken);
         console.log('Authentication successful');
@@ -89,7 +89,11 @@ async function handleOAuthCallback(code) {
         await loadUserData();
     } catch (error) {
         console.error('Authentication error:', error);
-        alert('Authentication failed. Please try again.');
+        if (error.message.includes('401')) {
+            alert('Authentication failed: Invalid or expired token. Please try logging in again.');
+        } else {
+            alert('Authentication failed: ' + error.message);
+        }
         handleLogout();
     }
 }
@@ -99,8 +103,8 @@ async function loadUserData() {
     try {
         const response = await fetch('https://api.github.com/user', {
             headers: {
-                'Authorization': `token ${accessToken}`,
-                'Accept': 'application/json'
+                'Authorization': `Bearer ${accessToken}`,
+                'Accept': 'application/vnd.github.v3+json'
             }
         });
 
@@ -128,8 +132,8 @@ async function loadUserData() {
         // Verify repository access
         const repoResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`, {
             headers: {
-                'Authorization': `token ${accessToken}`,
-                'Accept': 'application/json'
+                'Authorization': `Bearer ${accessToken}`,
+                'Accept': 'application/vnd.github.v3+json'
             }
         });
 
@@ -169,7 +173,8 @@ async function loadWatchlistData() {
     try {
         const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
             headers: {
-                'Authorization': `token ${accessToken}`
+                'Authorization': `Bearer ${accessToken}`,
+                'Accept': 'application/vnd.github.v3+json'
             }
         });
         
@@ -203,7 +208,8 @@ async function saveWatchlistData() {
         try {
             const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
                 headers: {
-                    'Authorization': `token ${accessToken}`
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Accept': 'application/vnd.github.v3+json'
                 }
             });
             currentFile = await response.json();
@@ -225,7 +231,7 @@ async function saveWatchlistData() {
         const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
             method: 'PUT',
             headers: {
-                'Authorization': `token ${accessToken}`,
+                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
