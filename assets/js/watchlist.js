@@ -274,10 +274,6 @@ function createWatchlistItem(item) {
         </div>
         <div class="ratings">
             <div class="rating">
-                <span>Your Rating</span>
-                <div class="value">${item.myRating}</div>
-            </div>
-            <div class="rating">
                 <span>IMDb</span>
                 <div class="value">${item.imdbRating}</div>
             </div>
@@ -319,7 +315,8 @@ addForm.addEventListener('submit', async (e) => {
     }
     
     const title = document.getElementById('title').value;
-    const myRating = document.getElementById('my-rating').value;
+    // We no longer accept a user rating; use IMDb rating only
+    const myRating = null;
     const year = document.getElementById('year').value;
     const notes = document.getElementById('notes').value;
     const posterUrl = document.getElementById('poster-url').value;
@@ -340,7 +337,7 @@ addForm.addEventListener('submit', async (e) => {
     const newItem = {
         title,
         year,
-        myRating,
+        // remove user's manual rating; rely on IMDb
         imdbRating: details.imdbRating,
         imdbId,
         posterUrl,
@@ -353,8 +350,14 @@ addForm.addEventListener('submit', async (e) => {
     watchlistData[listType].push(newItem);
     watchlistData[listType].sort((a, b) => b.addedAt.localeCompare(a.addedAt));
     
-    // Save to GitHub repository
-    await saveWatchlistData();
+    // Save to GitHub repository — use coalesced saver so multiple quick adds produce a single commit
+    scheduleSave(watchlistData).then((resp) => {
+        // Show minimal toast (50ms)
+        showToast('Saved', 50);
+    }).catch(err => {
+        console.error('Save failed:', err);
+        alert('Failed to save watchlist data. Please try again.');
+    });
     renderWatchlist(listType);
     
     modal.style.display = 'none';
@@ -364,3 +367,53 @@ addForm.addEventListener('submit', async (e) => {
 // Initial render
 renderWatchlist('movies');
 renderWatchlist('series');
+
+// --- Coalesced save: scheduleSave batches multiple quick saves into a single save call ---
+let saveTimer = null;
+let pendingSaveResolve = null;
+function scheduleSave(data) {
+    // Return a promise that resolves when the actual save completes
+    return new Promise((resolve, reject) => {
+        // Clear previous timer
+        if (saveTimer) {
+            clearTimeout(saveTimer);
+            saveTimer = null;
+        }
+
+        // If there's an outstanding pending resolve, we chain it so callers get the same promise
+        if (pendingSaveResolve) {
+            // Attach to existing promise by resolving when that one resolves
+            pendingSaveResolve.then(resolve).catch(reject);
+            return;
+        }
+
+        // Create a promise for the pending save
+        const pending = saveWatchlistData(data);
+        pendingSaveResolve = pending;
+
+        // Delay the actual commit slightly to coalesce multiple adds
+        saveTimer = setTimeout(async () => {
+            saveTimer = null;
+            try {
+                const resp = await pending;
+                pendingSaveResolve = null;
+                resolve(resp);
+            } catch (err) {
+                pendingSaveResolve = null;
+                reject(err);
+            }
+        }, 300); // 300ms coalescing window
+    });
+}
+
+// Tiny toast helper
+function showToast(message, duration = 50) {
+    const toast = document.createElement('div');
+    toast.className = 'mini-toast';
+    toast.textContent = message;
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:6px 10px;border-radius:4px;z-index:10000;opacity:0.95;font-size:12px;';
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        document.body.removeChild(toast);
+    }, duration);
+}

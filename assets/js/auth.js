@@ -122,93 +122,7 @@ export function handleLogin() {
     }
 }
 
-function showVerificationUI(verificationUri, userCode) {
-    // Create modal for verification UI
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        z-index: 1000;
-        text-align: center;
-    `;
-    
-    modal.innerHTML = `
-        <h3>Complete GitHub Authentication</h3>
-        <p>1. Visit: <a href="${verificationUri}" target="_blank">${verificationUri}</a></p>
-        <p>2. Enter code: <strong>${userCode}</strong></p>
-        <p>Waiting for authentication...</p>
-    `;
-    
-    document.body.appendChild(modal);
-    window.currentAuthModal = modal;
-}
-
-async function pollForToken(deviceCode, interval) {
-    let attempts = 0;
-    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-    
-    while (attempts < MAX_POLL_ATTEMPTS) {
-        try {
-            const response = await fetch(proxyUrl + GITHUB_ACCESS_TOKEN_URL, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    client_id: GITHUB_CLIENT_ID,
-                    device_code: deviceCode,
-                    grant_type: 'urn:ietf:params:oauth:grant-type:device_code'
-                })
-            });
-
-            const data = await response.json();
-            
-            if (data.access_token) {
-                // Success! Store the token and clean up
-                accessToken = data.access_token;
-                sessionStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
-                if (window.currentAuthModal) {
-                    document.body.removeChild(window.currentAuthModal);
-                    window.currentAuthModal = null;
-                }
-                await loadUserData();
-                return;
-            }
-            
-            // If still authorizing, wait and try again
-            if (data.error === 'authorization_pending') {
-                await new Promise(resolve => setTimeout(resolve, interval * 1000));
-                attempts++;
-                continue;
-            }
-            
-            // If other error, stop polling
-            throw new Error(data.error_description || 'Authentication failed');
-            
-        } catch (error) {
-            console.error('Polling error:', error);
-            if (window.currentAuthModal) {
-                document.body.removeChild(window.currentAuthModal);
-                window.currentAuthModal = null;
-            }
-            throw error;
-        }
-    }
-    
-    // If we get here, polling timed out
-    if (window.currentAuthModal) {
-        document.body.removeChild(window.currentAuthModal);
-        window.currentAuthModal = null;
-    }
-    throw new Error('Authentication timed out. Please try again.');
-}
+// Device-flow helper functions removed — using web OAuth redirect flow instead.
 
 async function loadUserData() {
     console.log('Loading user data...');
@@ -232,6 +146,12 @@ async function loadUserData() {
 
         userData = await response.json();
         console.log('User data loaded:', userData.login);
+        // Mark logged-in state in localStorage so other pages can detect login
+        try {
+            localStorage.setItem('github_logged_in', 'true');
+        } catch (e) {
+            console.warn('Could not set github_logged_in flag in localStorage', e);
+        }
         
         // Update UI
         document.getElementById('login-button').style.display = 'none';
@@ -273,6 +193,11 @@ export function handleLogout() {
     accessToken = null;
     userData = null;
     sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+    try {
+        localStorage.removeItem('github_logged_in');
+    } catch (e) {
+        console.warn('Could not remove github_logged_in flag from localStorage', e);
+    }
     
     // Update UI
     document.getElementById('login-button').style.display = 'block';
@@ -315,7 +240,9 @@ export async function loadWatchlistData() {
     }
 }
 
-export async function saveWatchlistData() {
+export async function saveWatchlistData(data = null) {
+    // Allow caller to pass the watchlist object to save; fall back to module-level `watchlist`.
+    const toSave = data ?? watchlist;
     if (!accessToken || userData?.login !== REPO_OWNER) return;
 
     try {
@@ -328,12 +255,23 @@ export async function saveWatchlistData() {
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
-            currentFile = await response.json();
+            // Only treat it as existing if we got a 200
+            if (response.ok) {
+                currentFile = await response.json();
+            }
         } catch (e) {
-            // File doesn't exist yet
+            // File doesn't exist yet or network error; will create on PUT
         }
 
-        const content = btoa(JSON.stringify(watchlist, null, 2));
+        // Update module-level watchlist so future callers/readers see the latest data
+        try {
+            watchlist = JSON.parse(JSON.stringify(toSave));
+        } catch (e) {
+            // Fallback: keep existing watchlist
+        }
+
+        // GitHub expects base64-encoded content
+        const content = btoa(JSON.stringify(toSave, null, 2));
         const body = {
             message: 'Update watchlist data',
             content,
@@ -344,6 +282,7 @@ export async function saveWatchlistData() {
             body.sha = currentFile.sha;
         }
 
+        console.log('Saving watchlist to GitHub:', { path: DATA_FILE_PATH, size: content.length, preview: JSON.stringify(toSave).slice(0,200) });
         const response = await fetch(`${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
             method: 'PUT',
             headers: {
@@ -357,6 +296,11 @@ export async function saveWatchlistData() {
             const errorData = await response.json().catch(() => ({}));
             console.error('Failed to save watchlist data:', response.status, errorData);
             throw new Error(`Failed to save watchlist data: ${response.status} ${errorData.message || 'Unknown error'}`);
+        } else {
+            // Try to log commit info for visibility
+            const respData = await response.json().catch(() => ({}));
+            console.log('Watchlist saved:', respData.commit ? respData.commit.sha : respData);
+            return respData;
         }
     } catch (error) {
         console.error('Error saving watchlist data:', error);

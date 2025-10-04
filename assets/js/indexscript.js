@@ -38,15 +38,32 @@ const updateVisitorCount = () => {
     try {
         if (!counter) return;
 
-        let count = 1;
-        const stored = localStorage.getItem('visitorCount');
-
-        if (stored !== null) {
-            count = parseInt(stored, 10) + 1;
+        // Only increment/show counter for logged-in users (GitHub login flag)
+        const isLoggedIn = localStorage.getItem('github_logged_in') === 'true';
+        if (!isLoggedIn) {
+            counter.style.display = 'none';
+            return;
         }
 
-        localStorage.setItem('visitorCount', count);
-        counter.textContent = count;
+        // Maintain a visitorHistory array so each open increments the history
+        let history = [];
+        try {
+            const raw = localStorage.getItem('visitorHistory');
+            if (raw) history = JSON.parse(raw);
+        } catch (e) {
+            console.warn('Invalid visitorHistory in localStorage, resetting', e);
+            history = [];
+        }
+
+        // Push a timestamp entry for this visit
+        history.push({ ts: new Date().toISOString() });
+        try {
+            localStorage.setItem('visitorHistory', JSON.stringify(history));
+        } catch (e) {
+            console.warn('Failed to persist visitorHistory', e);
+        }
+
+        counter.textContent = history.length;
     } catch (error) {
         console.error('Error updating visitor count:', error);
         // Fallback if localStorage is not available
