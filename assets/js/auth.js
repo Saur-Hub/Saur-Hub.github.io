@@ -1,16 +1,11 @@
-// GitHub OAuth Configuration
-const GITHUB_CLIENT_ID = 'Ov23livEBhhIbW4Vf2TS';
-const GITHUB_REDIRECT_URI = 'https://saur-hub.github.io/watchlist.html';
+// GitHub Configuration
 const GITHUB_API_URL = 'https://api.github.com';
 const REPO_OWNER = 'Saur-Hub';
 const REPO_NAME = 'Saur-Hub.github.io';
 const DATA_FILE_PATH = 'assets/data/watchlist.json';
 
-// Note: The client secret should never be exposed in client-side code
-// We'll use an OAuth proxy service for token exchange
-
-// OAuth scopes required for the application
-const REQUIRED_SCOPES = 'repo,user';
+// Personal Access Token storage key
+const TOKEN_STORAGE_KEY = 'github_personal_token';
 
 let accessToken = null;
 let userData = null;
@@ -21,25 +16,8 @@ document.addEventListener('DOMContentLoaded', initializeAuth);
 async function initializeAuth() {
     console.log('Initializing authentication...');
     
-    // Check for OAuth callback
-    const code = new URLSearchParams(window.location.search).get('code');
-    if (code) {
-        console.log('OAuth callback detected with code');
-        // Add error handling for URL state
-        try {
-            await handleOAuthCallback(code);
-            // Remove code from URL - use relative path to work on GitHub Pages
-            const path = window.location.pathname;
-            window.history.replaceState({}, document.title, path);
-        } catch (error) {
-            console.error('Failed to handle OAuth callback:', error);
-            // Clear any existing tokens to ensure clean state
-            handleLogout();
-        }
-    }
-
     // Check for existing token in session storage
-    accessToken = sessionStorage.getItem('github_token');
+    accessToken = sessionStorage.getItem(TOKEN_STORAGE_KEY);
     if (accessToken) {
         console.log('Found existing access token');
         try {
@@ -58,37 +36,48 @@ async function initializeAuth() {
 async function handleLogin() {
     console.log('Initiating GitHub login...');
     try {
-        // Clear any existing session data
-        sessionStorage.removeItem('github_token');
+        // Clear any existing token
+        sessionStorage.removeItem(TOKEN_STORAGE_KEY);
         
-        // Generate a secure random state
-        const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('');
-        
-        // Store state and timestamp
-        const stateData = {
-            value: state,
-            timestamp: Date.now()
-        };
-        sessionStorage.setItem('oauth_state', JSON.stringify(stateData));
-        
-        // Construct authorization URL with minimum required scopes
-        const params = new URLSearchParams({
-            client_id: GITHUB_CLIENT_ID,
-            redirect_uri: GITHUB_REDIRECT_URI,
-            scope: 'repo,user', // Explicit scope definition
-            state: state
+        // Prompt for Personal Access Token
+        const token = prompt(
+            'Please enter your GitHub Personal Access Token.\n\n' +
+            'To create a token:\n' +
+            '1. Go to GitHub.com → Settings → Developer settings → Personal access tokens → Tokens (classic)\n' +
+            '2. Click "Generate new token (classic)"\n' +
+            '3. Give it a name and select these scopes: repo, user\n' +
+            '4. Copy and paste the token here'
+        );
+
+        if (!token) {
+            throw new Error('No token provided');
+        }
+
+        // Store token temporarily
+        accessToken = token;
+
+        // Validate the token immediately
+        const response = await fetch(`${GITHUB_API_URL}/user`, {
+            headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'Authorization': `token ${token}`
+            }
         });
+
+        if (!response.ok) {
+            throw new Error('Invalid token');
+        }
+
+        // If we get here, token is valid
+        sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+        console.log('Authentication successful');
         
-        const authUrl = `https://github.com/login/oauth/authorize?${params.toString()}`;
-        console.log('Redirecting to GitHub auth page...');
-        
-        // Redirect to GitHub
-        window.location.href = authUrl;
+        // Load user data and initialize the application
+        await loadUserData();
     } catch (error) {
-        console.error('Failed to initiate login:', error);
-        alert('Failed to start login process. Please try again.');
+        console.error('Login failed:', error);
+        alert('Login failed: ' + (error.message || 'Please try again'));
+        handleLogout();
     }
 }
 
@@ -229,7 +218,7 @@ async function loadUserData() {
 function handleLogout() {
     accessToken = null;
     userData = null;
-    sessionStorage.removeItem('github_token');
+    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
     
     // Update UI
     document.getElementById('login-button').style.display = 'block';
@@ -247,7 +236,7 @@ async function loadWatchlistData() {
     try {
         const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `token ${accessToken}`,
                 'Accept': 'application/vnd.github.v3+json'
             }
         });
@@ -305,7 +294,7 @@ async function saveWatchlistData() {
         const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `token ${accessToken}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
