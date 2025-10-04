@@ -1,9 +1,12 @@
 // GitHub Configuration
 const GITHUB_API_URL = 'https://api.github.com';
-const GITHUB_OAUTH_URL = 'https://github.com/login/oauth/authorize';
+const GITHUB_DEVICE_CODE_URL = 'https://gh-device-auth.azurewebsites.net/api/device/code';
+const GITHUB_ACCESS_TOKEN_URL = 'https://gh-device-auth.azurewebsites.net/api/device/token';
 const GITHUB_CLIENT_ID = 'Ov23livEBhhIbW4Vf2TS';
-const GITHUB_CLIENT_SECRET = '66c8878f332bae8d621a0637bf58988ff9ef0d0e'; // Add your client secret here
-const GITHUB_REDIRECT_URI = 'https://saur-hub.github.io/watchlist.html';
+
+// Polling configuration
+const POLL_INTERVAL = 5000; // 5 seconds
+const MAX_POLL_ATTEMPTS = 12; // 1 minute total
 const REPO_OWNER = 'Saur-Hub';
 const REPO_NAME = 'Saur-Hub.github.io';
 const DATA_FILE_PATH = 'assets/data/watchlist.json';
@@ -41,40 +44,37 @@ async function initializeAuth() {
 }
 
 async function handleLogin() {
-    console.log('Initiating GitHub login...');
+    console.log('Initiating GitHub device flow...');
     try {
-        // Clear any existing tokens and state
+        // Clear any existing tokens
         sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-        sessionStorage.removeItem('oauth_state');
         
-        // Generate a secure state parameter
-        const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('');
-            
-        // Store state with timestamp
-        const stateData = {
-            value: state,
-            timestamp: Date.now()
-        };
-        sessionStorage.setItem('oauth_state', JSON.stringify(stateData));
-        console.log('Generated state:', stateData);
-
-        // Construct GitHub OAuth URL with parameters
-        const params = new URLSearchParams({
-            client_id: GITHUB_CLIENT_ID,
-            redirect_uri: GITHUB_REDIRECT_URI,
-            scope: 'repo,user',
-            state: state,
-            response_type: 'code'
+        // Request device and user codes
+        const deviceCodeResponse = await fetch(GITHUB_DEVICE_CODE_URL, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                client_id: GITHUB_CLIENT_ID,
+                scope: 'repo,user'
+            })
         });
 
-        // Log the full auth URL for debugging
-        const authUrl = `${GITHUB_OAUTH_URL}?${params.toString()}`;
-        console.log('Redirecting to GitHub auth URL:', authUrl);
+        if (!deviceCodeResponse.ok) {
+            throw new Error('Failed to initialize device flow');
+        }
+
+        const deviceData = await deviceCodeResponse.json();
         
-        // Redirect to GitHub login page
-        window.location.href = authUrl;
+        // Show verification UI
+        showVerificationUI(deviceData.verification_uri, deviceData.user_code);
+        
+        // Start polling for token
+        await pollForToken(deviceData.device_code, deviceData.interval || 5);
     } catch (error) {
         console.error('Login failed:', error);
         alert('Login failed: ' + (error.message || 'Please try again'));
@@ -82,7 +82,96 @@ async function handleLogin() {
     }
 }
 
-async function handleOAuthCallback(code) {
+function showVerificationUI(verificationUri, userCode) {
+    // Create modal for verification UI
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        text-align: center;
+    `;
+    
+    modal.innerHTML = `
+        <h3>Complete GitHub Authentication</h3>
+        <p>1. Visit: <a href="${verificationUri}" target="_blank">${verificationUri}</a></p>
+        <p>2. Enter code: <strong>${userCode}</strong></p>
+        <p>Waiting for authentication...</p>
+    `;
+    
+    document.body.appendChild(modal);
+    window.currentAuthModal = modal;
+}
+
+async function pollForToken(deviceCode, interval) {
+    let attempts = 0;
+    
+    while (attempts < MAX_POLL_ATTEMPTS) {
+        try {
+            const response = await fetch(GITHUB_ACCESS_TOKEN_URL, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Origin': window.location.origin,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    client_id: GITHUB_CLIENT_ID,
+                    device_code: deviceCode,
+                    grant_type: 'urn:ietf:params:oauth:grant-type:device_code'
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.access_token) {
+                // Success! Store the token and clean up
+                accessToken = data.access_token;
+                sessionStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
+                if (window.currentAuthModal) {
+                    document.body.removeChild(window.currentAuthModal);
+                    window.currentAuthModal = null;
+                }
+                await loadUserData();
+                return;
+            }
+            
+            // If still authorizing, wait and try again
+            if (data.error === 'authorization_pending') {
+                await new Promise(resolve => setTimeout(resolve, interval * 1000));
+                attempts++;
+                continue;
+            }
+            
+            // If other error, stop polling
+            throw new Error(data.error_description || 'Authentication failed');
+            
+        } catch (error) {
+            console.error('Polling error:', error);
+            if (window.currentAuthModal) {
+                document.body.removeChild(window.currentAuthModal);
+                window.currentAuthModal = null;
+            }
+            throw error;
+        }
+    }
+    
+    // If we get here, polling timed out
+    if (window.currentAuthModal) {
+        document.body.removeChild(window.currentAuthModal);
+        window.currentAuthModal = null;
+    }
+    throw new Error('Authentication timed out. Please try again.');
+}
+
+// Remove the old OAuth callback function since we're using device flow now
     console.log('Processing OAuth callback with code:', code);
     
     try {

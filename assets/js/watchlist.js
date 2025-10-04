@@ -15,26 +15,7 @@ const selectedItem = document.getElementById('selected-item');
 // Initialize authentication on page load
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Page initialized, checking for auth...');
-    
-    // Check for OAuth callback in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const state = urlParams.get('state');
-    
-    if (code && state) {
-        console.log('Found OAuth callback parameters:', { code, state });
-        try {
-            // Call the handleOAuthCallback function from auth.js
-            await handleOAuthCallback(code);
-            console.log('OAuth callback handled successfully');
-        } catch (error) {
-            console.error('Failed to handle OAuth callback:', error);
-            handleLogout();
-        }
-    } else {
-        console.log('No OAuth callback, checking for existing session...');
-        await initializeAuth();
-    }
+    await initializeAuth();
 });
 
 // State
