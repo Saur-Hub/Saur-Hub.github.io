@@ -167,9 +167,13 @@ function showAddModal() {
     handleVirtualKeyboard();
 }
 
+// Development environment detection
+const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const NETLIFY_URL = isDev ? 'http://localhost:8888' : 'https://saur-hub-functions.netlify.app';
+
 async function searchMovies(query) {
     try {
-        const response = await fetch(`https://saur-hub-functions.netlify.app/.netlify/functions/omdb-api?s=${encodeURIComponent(query)}`);
+        const response = await fetch(`${NETLIFY_URL}/.netlify/functions/omdb-api?s=${encodeURIComponent(query)}`);
         const data = await response.json();
         
         if (data.Response === "True") {
@@ -184,7 +188,7 @@ async function searchMovies(query) {
 
 async function getMovieDetails(imdbID) {
     try {
-        const response = await fetch(`https://saur-hub-functions.netlify.app/.netlify/functions/omdb-api?i=${imdbID}`);
+        const response = await fetch(`${NETLIFY_URL}/.netlify/functions/omdb-api?i=${imdbID}`);
         const data = await response.json();
         return data;
     } catch (error) {

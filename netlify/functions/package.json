@@ -1,0 +1,8 @@
+{
+  "name": "saur-hub-functions",
+  "version": "1.0.0",
+  "description": "Netlify functions for Saur-Hub static site",
+  "main": "index.js",
+  "dependencies": {},
+  "type": "commonjs"
+}

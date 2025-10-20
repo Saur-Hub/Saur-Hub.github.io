@@ -5,8 +5,5 @@
   "type": "module",
   "scripts": {
     "test": "node test/run-tests.js"
-  },
-  "dependencies": {
-    "node-fetch": "^3.3.2"
   }
 }

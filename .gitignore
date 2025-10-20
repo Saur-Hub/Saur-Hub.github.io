@@ -1,0 +1,8 @@
+# Local development
+node_modules/
+.netlify/
+.env
+
+# OS files
+.DS_Store
+Thumbs.db

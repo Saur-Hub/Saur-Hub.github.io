@@ -1,8 +1,14 @@
+// Development environment detection
+const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+// API Configuration
+const NETLIFY_URL = isDev ? 'http://localhost:8888' : 'https://saur-hub-functions.netlify.app';
+
 // GitHub Configuration
 export const GITHUB_API_URL = "https://api.github.com";
 export const GITHUB_OAUTH_URL = "https://github.com/login/oauth/authorize";
 export const GITHUB_CLIENT_ID = "Ov23livEBhhIbW4Vf2TS";
-export const REDIRECT_URI = "https://saur-hub.github.io/watchlist.html";
+export const REDIRECT_URI = isDev ? "http://localhost:8888/watchlist.html" : "https://saur-hub.github.io/watchlist.html";
 
 // Repository configuration
 export const REPO_OWNER = "Saur-Hub";
@@ -21,9 +27,6 @@ export let watchlist = {
     series: []
 };
 
-export async function initializeAuth() {
-    // ...rest of the file...
-}
 export async function initializeAuth() {
     console.log("Initializing authentication...");
     
@@ -50,7 +53,7 @@ export async function initializeAuth() {
             sessionStorage.removeItem("oauth_state");
 
             // Exchange code for access token using Netlify function
-            const tokenResponse = await fetch("https://saur-hub-functions.netlify.app/.netlify/functions/github-auth", {
+            const tokenResponse = await fetch(`${NETLIFY_URL}/.netlify/functions/github-auth`, {
                 method: "POST",
                 headers: {
                     "Accept": "application/json",

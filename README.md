@@ -31,14 +31,48 @@ Personal portfolio website showcasing my work as an Automotive Embedded Develope
 ```
 ├── index.html          # Main portfolio page
 ├── experience.html     # Experience showcase
+├── watchlist.html      # Movie/TV Show watchlist
 ├── assets/
 │   ├── css/           # Stylesheet files
 │   ├── js/            # JavaScript files
 │   ├── imgs/          # Image assets
-│   └── audio/         # Audio files
+│   ├── audio/         # Audio files
+│   └── data/          # JSON data files
+├── netlify/
+│   └── functions/     # Serverless functions
 ├── robots.txt         # Search engine instructions
-└── sitemap.xml       # Site structure for search engines
+└── sitemap.xml        # Site structure for search engines
 ```
+
+## 🚀 Local Development
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Saur-Hub/Saur-Hub.github.io.git
+   cd Saur-Hub.github.io
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install netlify-cli -g
+   ```
+
+3. Set up environment variables:
+   - Copy `.env.example` to `.env`
+   - Fill in your API keys and secrets in `.env`
+   - Required variables:
+     - `OMDB_API_KEY`: Get from [OMDB API](https://www.omdbapi.com/apikey.aspx)
+     - `GITHUB_CLIENT_ID`: From your GitHub OAuth App
+     - `GITHUB_CLIENT_SECRET`: From your GitHub OAuth App
+
+4. Start the development server:
+   ```bash
+   netlify dev
+   ```
+
+5. Open [http://localhost:8888](http://localhost:8888) in your browser
+
+Note: For the GitHub authentication to work locally, make sure your GitHub OAuth App's callback URL includes `http://localhost:8888/watchlist.html`
 
 ## � TODO
 - [x] Remove the embed Spotify player and replace it with an internal audio playlist (auto-plays after user gesture)
