@@ -2,13 +2,13 @@
 const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 // API Configuration
-const NETLIFY_URL = isDev ? 'http://localhost:8888' : 'https://saur-hub-functions.netlify.app';
+const NETLIFY_URL = isDev ? 'http://localhost:8888' : 'https://saur-hub-static.netlify.app';
 
 // GitHub Configuration
 export const GITHUB_API_URL = "https://api.github.com";
 export const GITHUB_OAUTH_URL = "https://github.com/login/oauth/authorize";
 export const GITHUB_CLIENT_ID = "Ov23livEBhhIbW4Vf2TS";
-export const REDIRECT_URI = isDev ? "http://localhost:8888/watchlist.html" : "https://saur-hub.github.io/watchlist.html";
+export const REDIRECT_URI = isDev ? "http://localhost:8888/watchlist.html" : "https://saur-hub-static.netlify.app/watchlist.html";
 
 // Repository configuration
 export const REPO_OWNER = "Saur-Hub";
