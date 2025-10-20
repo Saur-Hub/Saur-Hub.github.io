@@ -1,9 +1,7 @@
 // GitHub Configuration
 export const GITHUB_API_URL = 'https://api.github.com';
 export const GITHUB_OAUTH_URL = 'https://github.com/login/oauth/authorize';
-export const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 export const GITHUB_CLIENT_ID = 'Ov23livEBhhIbW4Vf2TS';
-export const GITHUB_CLIENT_SECRET = '66c8878f332bae8d621a0637bf58988ff9ef0d0e'; // Note: In production, this should be kept secret
 export const REDIRECT_URI = 'https://saur-hub.github.io/watchlist.html';
 
 // Repository configuration
@@ -48,20 +46,14 @@ export async function initializeAuth() {
             }
             sessionStorage.removeItem('oauth_state');
 
-            // Exchange code for access token using GitHub OAuth
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-            const tokenResponse = await fetch(proxyUrl + GITHUB_TOKEN_URL, {
+            // Exchange code for access token using Netlify function
+            const tokenResponse = await fetch('/.netlify/functions/github-auth', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    client_id: GITHUB_CLIENT_ID,
-                    client_secret: GITHUB_CLIENT_SECRET,
-                    code: code,
-                    redirect_uri: REDIRECT_URI
-                })
+                body: JSON.stringify({ code, state })
             });
 
             const data = await tokenResponse.json();
