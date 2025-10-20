@@ -169,7 +169,7 @@ function showAddModal() {
 
 async function searchMovies(query) {
     try {
-        const response = await fetch(`/.netlify/functions/omdb-api?s=${encodeURIComponent(query)}`);
+        const response = await fetch(`https://saur-hub-functions.netlify.app/.netlify/functions/omdb-api?s=${encodeURIComponent(query)}`);
         const data = await response.json();
         
         if (data.Response === "True") {
@@ -184,7 +184,7 @@ async function searchMovies(query) {
 
 async function getMovieDetails(imdbID) {
     try {
-        const response = await fetch(`/.netlify/functions/omdb-api?i=${imdbID}`);
+        const response = await fetch(`https://saur-hub-functions.netlify.app/.netlify/functions/omdb-api?i=${imdbID}`);
         const data = await response.json();
         return data;
     } catch (error) {
