@@ -169,7 +169,7 @@ function showAddModal() {
 
 // Development environment detection
 const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const NETLIFY_URL = isDev ? 'http://localhost:8888' : 'https://saur-hub-functions.netlify.app';
+const NETLIFY_URL = isDev ? 'http://localhost:8888' : 'https://saur-hub-static.netlify.app';
 
 async function searchMovies(query) {
     try {
