@@ -63,6 +63,17 @@
   ],
   "series": [
     {
+      "title": "The Big Bang Theory",
+      "year": "2007–2019",
+      "imdbRating": "8.1",
+      "imdbId": "tt0898266",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BZjgzY2QyNzItNDhhYi00ZWIwLWFjN2UtZDJkN2MxYWNjMmJjXkEyXkFqcGc@._V1_SX300.jpg",
+      "notes": "",
+      "type": "series",
+      "addedAt": "2026-03-09T04:36:23.629Z",
+      "_new": true
+    },
+    {
       "title": "Friends",
       "year": "1994–2004",
       "imdbRating": "8.9",
@@ -70,8 +81,7 @@
       "posterUrl": "https://m.media-amazon.com/images/M/MV5BOTU2YmM5ZjctOGVlMC00YTczLTljM2MtYjhlNGI5YWMyZjFkXkEyXkFqcGc@._V1_SX300.jpg",
       "notes": "",
       "type": "series",
-      "addedAt": "2026-03-09T04:32:55.588Z",
-      "_new": true
+      "addedAt": "2026-03-09T04:32:55.588Z"
     }
   ],
   "anime": []
