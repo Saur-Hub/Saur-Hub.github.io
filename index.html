@@ -60,6 +60,17 @@
     </section>
     
     <!-- Javascript -->
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            const state = params.get('state');
+
+            if (code && state) {
+                window.location.replace(`watchlist.html?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`);
+            }
+        })();
+    </script>
     <script src="./assets/js/indexscript.js"></script>
 </body>
 </html>

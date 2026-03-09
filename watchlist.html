@@ -49,10 +49,14 @@
     </div>
 
     <main class="watchlist-container">
+        <div id="initial-loading" class="initial-loading" aria-live="polite">Loading watchlist...</div>
 
         <div class="add-button-container" id="add-button-container" style="display: none;">
             <button onclick="window.showAddModal()" class="add-content-btn">
                 <i class="fas fa-plus"></i> Add to Watchlist
+            </button>
+            <button id="export-watchlist" class="add-content-btn export-content-btn" type="button">
+                <i class="fas fa-file-export"></i> Export JSON
             </button>
         </div>
 
@@ -60,7 +64,12 @@
             <section class="movies-section">
                 <h2>Movies Watchlist</h2>
                 <div class="search-bar">
-                    <input type="text" id="movie-search" placeholder="Search movies...">
+                    <input type="text" id="movie-search" placeholder="Search movies..." aria-label="Search movies">
+                    <select id="movie-sort" aria-label="Sort movies">
+                        <option value="year-desc">Newest</option>
+                        <option value="year-asc">Oldest</option>
+                        <option value="title-asc">Title A-Z</option>
+                    </select>
                 </div>
                 <div class="watchlist-grid" id="movies-grid">
                     <!-- Movie items will be added here dynamically -->
@@ -70,10 +79,30 @@
             <section class="series-section">
                 <h2>TV Series Watchlist</h2>
                 <div class="search-bar">
-                    <input type="text" id="series-search" placeholder="Search TV series...">
+                    <input type="text" id="series-search" placeholder="Search TV series..." aria-label="Search TV series">
+                    <select id="series-sort" aria-label="Sort TV series">
+                        <option value="year-desc">Newest</option>
+                        <option value="year-asc">Oldest</option>
+                        <option value="title-asc">Title A-Z</option>
+                    </select>
                 </div>
                 <div class="watchlist-grid" id="series-grid">
                     <!-- Series items will be added here dynamically -->
+                </div>
+            </section>
+
+            <section class="anime-section">
+                <h2>Anime Watchlist</h2>
+                <div class="search-bar">
+                    <input type="text" id="anime-search" placeholder="Search anime..." aria-label="Search anime">
+                    <select id="anime-sort" aria-label="Sort anime">
+                        <option value="year-desc">Newest</option>
+                        <option value="year-asc">Oldest</option>
+                        <option value="title-asc">Title A-Z</option>
+                    </select>
+                </div>
+                <div class="watchlist-grid" id="anime-grid">
+                    <!-- Anime items will be added here dynamically -->
                 </div>
             </section>
         </div>
@@ -85,8 +114,8 @@
                 <h3>Add to Watchlist</h3>
                 <form id="add-form">
                     <div class="search-container">
-                        <input type="text" id="search-title" placeholder="Search for a movie or TV show..." autocomplete="off">
-                        <div id="suggestions" class="suggestions-dropdown"></div>
+                        <input type="text" id="search-title" placeholder="Search for a movie or TV show..." autocomplete="off" aria-label="Search title" aria-autocomplete="list" aria-controls="suggestions" aria-expanded="false">
+                        <div id="suggestions" class="suggestions-dropdown" role="listbox" aria-label="Search suggestions"></div>
                     </div>
                     <div class="selected-item" id="selected-item" style="display: none;">
                         <img id="selected-poster" src="" alt="Poster" class="item-poster">
@@ -104,7 +133,7 @@
                     <input type="hidden" id="imdb-id">
                     <input type="hidden" id="poster-url">
                     <input type="hidden" id="type">
-                    <button type="submit">Add</button>
+                    <button type="submit">Save to Watchlist</button>
                 </form>
             </div>
         </div>

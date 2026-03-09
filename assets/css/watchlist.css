@@ -5,8 +5,19 @@
     padding: 0 1rem;
 }
 
+.initial-loading {
+    text-align: center;
+    color: var(--color-text-muted);
+    margin: 1rem 0 2rem;
+}
+
+.initial-loading.hidden {
+    display: none;
+}
+
 .movies-section,
-.series-section {
+.series-section,
+.anime-section {
     background-color: var(--color-border-dark);
     border-radius: 10px;
     padding: 2rem;
@@ -14,7 +25,8 @@
 }
 
 .movies-section h2,
-.series-section h2 {
+.series-section h2,
+.anime-section h2 {
     color: var(--color-text);
     margin-bottom: 1.5rem;
     font-size: 1.8rem;
@@ -33,6 +45,15 @@
     border-radius: 5px;
     background-color: var(--color-background);
     color: var(--color-text);
+}
+
+.search-bar select {
+    padding: 0.8rem;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    min-width: 120px;
 }
 
 .search-bar button {
@@ -116,6 +137,27 @@
     display: flex;
     justify-content: space-between;
     margin-bottom: 1rem;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.item-action-btn {
+    border: 1px solid var(--color-border);
+    background-color: transparent;
+    color: var(--color-text-muted);
+    border-radius: 5px;
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.item-action-btn:hover {
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
 }
 
 .rating {
@@ -333,6 +375,16 @@ header nav {
     background-color: #6b48d9;
 }
 
+.export-content-btn {
+    margin-left: 0.75rem;
+    background-color: var(--color-border-dark);
+    color: var(--color-text);
+}
+
+.export-content-btn:hover {
+    background-color: var(--color-background);
+}
+
 /* Search and Suggestions Styling */
 .search-container {
     position: relative;
@@ -389,6 +441,10 @@ header nav {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+    background-color: var(--color-background);
     background: linear-gradient(180deg, rgba(127,90,240,0.02), transparent);
 }
 
@@ -654,16 +710,17 @@ header nav {
         background-color: var(--color-background);
         border-bottom: 1px solid var(--color-border);
         z-index: 1001;
-        /* Add pull indicator */
-        &::before {
-            content: '';
-            display: block;
-            width: 40px;
-            height: 4px;
-            background-color: var(--color-border);
-            border-radius: 2px;
-            margin: 0 auto 8px;
-        }
+    }
+
+    /* Pull indicator for suggestions drawer */
+    .suggestions-close::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 4px;
+        background-color: var(--color-border);
+        border-radius: 2px;
+        margin: 0 auto 8px;
     }
 
     .suggestions-close button {

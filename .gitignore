@@ -1,7 +1,11 @@
 # Local development
 node_modules/
 .netlify/
+
+# Environment secrets (NEVER commit these)
 .env
+.env.local
+.env.*.local
 
 # OS files
 .DS_Store

@@ -3,6 +3,21 @@
   "version": "1.0.0",
   "description": "Netlify functions for Saur-Hub static site",
   "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "netlify",
+    "functions",
+    "github",
+    "oauth",
+    "omdb"
+  ],
+  "author": "Saurabh Sakhare",
+  "license": "GPL-3.0",
   "dependencies": {},
-  "type": "commonjs"
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

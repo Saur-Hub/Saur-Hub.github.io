@@ -1,5 +1,7 @@
+import { GITHUB_CLIENT_ID as CONFIG_CLIENT_ID } from './config.js';
+
 // Development environment detection
-const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const isDev = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 // API Configuration
 const NETLIFY_URL = isDev ? 'http://localhost:8888' : 'https://saur-hub-static.netlify.app';
@@ -7,8 +9,11 @@ const NETLIFY_URL = isDev ? 'http://localhost:8888' : 'https://saur-hub-static.n
 // GitHub Configuration
 export const GITHUB_API_URL = "https://api.github.com";
 export const GITHUB_OAUTH_URL = "https://github.com/login/oauth/authorize";
-export const GITHUB_CLIENT_ID = "Ov23livEBhhIbW4Vf2TS";
-export const REDIRECT_URI = isDev ? "http://localhost:8888/watchlist.html" : "https://saur-hub-static.netlify.app/watchlist.html";
+export const GITHUB_CLIENT_ID = CONFIG_CLIENT_ID;
+// REDIRECT_URI matches the OAuth App callback URL configured on GitHub
+// Development OAuth App: callback URL = http://localhost:8888/
+// Production OAuth App: callback URL = https://saur-hub-static.netlify.app/
+export const REDIRECT_URI = isDev ? "http://localhost:8888/" : "https://saur-hub-static.netlify.app/";
 
 // Repository configuration
 export const REPO_OWNER = "Saur-Hub";
@@ -24,11 +29,47 @@ export let accessToken = null;
 export let userData = null;
 export let watchlist = {
     movies: [],
-    series: []
+    series: [],
+    anime: []
 };
+
+function getAuthElements() {
+    if (typeof document === 'undefined') {
+        return {};
+    }
+
+    return {
+        loginButton: document.getElementById("login-button"),
+        userInfo: document.getElementById("user-info"),
+        addButtonContainer: document.getElementById("add-button-container"),
+        userAvatar: document.getElementById("user-avatar"),
+        username: document.getElementById("username")
+    };
+}
+
+function encodeBase64Utf8(text) {
+    const bytes = new TextEncoder().encode(text);
+    let binary = '';
+    bytes.forEach((b) => {
+        binary += String.fromCharCode(b);
+    });
+    return btoa(binary);
+}
+
+function decodeBase64Utf8(base64Text) {
+    const binary = atob(base64Text);
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+}
 
 export async function initializeAuth() {
     console.log("Initializing authentication...");
+    
+    // Only run in browser environment
+    if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') {
+        console.log("Skipping auth initialization in non-browser environment");
+        return;
+    }
     
     try {
         // Check for existing token in session storage
@@ -85,9 +126,10 @@ export async function initializeAuth() {
 
         // If we get here, no valid token was found
         console.log("No existing access token found");
-        document.getElementById("login-button").style.display = "inline-flex";
-        document.getElementById("user-info").style.display = "none";
-        document.getElementById("add-button-container").style.display = "none";
+        const { loginButton, userInfo, addButtonContainer } = getAuthElements();
+        if (loginButton) loginButton.style.display = "inline-flex";
+        if (userInfo) userInfo.style.display = "none";
+        if (addButtonContainer) addButtonContainer.style.display = "none";
     } catch (error) {
         console.error("Error during auth initialization:", error);
         handleLogout();
@@ -96,6 +138,13 @@ export async function initializeAuth() {
 
 export function handleLogin() {
     console.log("Initiating GitHub OAuth flow...");
+    
+    // Only run in browser environment
+    if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') {
+        console.log("Login is only available in browser environment");
+        return;
+    }
+    
     try {
         // Clear any existing tokens
         sessionStorage.removeItem(TOKEN_STORAGE_KEY);
@@ -116,13 +165,22 @@ export function handleLogin() {
         window.location.href = `${GITHUB_OAUTH_URL}?${params.toString()}`;
     } catch (error) {
         console.error("Login failed:", error);
-        alert("Login failed: " + (error.message || "Please try again"));
+        if (typeof alert !== 'undefined') {
+            alert("Login failed: " + (error.message || "Please try again"));
+        }
         handleLogout();
     }
 }
 
 async function loadUserData() {
     console.log("Loading user data...");
+    
+    // Only run in browser environment
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+        console.log("loadUserData is only available in browser environment");
+        return;
+    }
+    
     try {
         if (!accessToken) {
             throw new Error("No access token available");
@@ -151,14 +209,15 @@ async function loadUserData() {
         }
         
         // Update UI
-        document.getElementById("login-button").style.display = "none";
-        document.getElementById("user-info").style.display = "flex";
-        document.getElementById("user-avatar").src = userData.avatar_url;
-        document.getElementById("username").textContent = userData.login;
+        const { loginButton, userInfo, addButtonContainer, userAvatar, username } = getAuthElements();
+        if (loginButton) loginButton.style.display = "none";
+        if (userInfo) userInfo.style.display = "flex";
+        if (userAvatar) userAvatar.src = userData.avatar_url;
+        if (username) username.textContent = userData.login;
         
         // Show add button only if user is repo owner
-        if (userData.login === REPO_OWNER) {
-            document.getElementById("add-button-container").style.display = "block";
+        if (userData.login === REPO_OWNER && addButtonContainer) {
+            addButtonContainer.style.display = "block";
         }
         
         // Verify repository access
@@ -181,7 +240,9 @@ async function loadUserData() {
         await loadWatchlistData();
     } catch (error) {
         console.error("Error loading user data:", error);
-        alert("Failed to load user data: " + error.message);
+        if (typeof alert !== 'undefined') {
+            alert("Failed to load user data: " + error.message);
+        }
         handleLogout();
     }
 }
@@ -189,23 +250,36 @@ async function loadUserData() {
 export function handleLogout() {
     accessToken = null;
     userData = null;
-    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+    
+    // Only update storage and UI in browser environment
+    if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
     try {
-        localStorage.removeItem("github_logged_in");
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem("github_logged_in");
+        }
     } catch (e) {
         console.warn("Could not remove github_logged_in flag from localStorage", e);
     }
     
-    // Update UI
-    document.getElementById("login-button").style.display = "block";
-    document.getElementById("user-info").style.display = "none";
-    document.getElementById("add-button-container").style.display = "none";
+    // Update UI only if DOM is available
+    if (typeof document !== 'undefined') {
+        const { loginButton, userInfo, addButtonContainer } = getAuthElements();
+        if (loginButton) loginButton.style.display = "block";
+        if (userInfo) userInfo.style.display = "none";
+        if (addButtonContainer) addButtonContainer.style.display = "none";
+    }
     
     // Clear watchlist data
     watchlist.movies = [];
     watchlist.series = [];
-    window.renderWatchlist?.("movies");
-    window.renderWatchlist?.("series");
+    watchlist.anime = [];
+    if (typeof window !== 'undefined' && window.renderWatchlist) {
+        window.renderWatchlist?.("movies");
+        window.renderWatchlist?.("series");
+        window.renderWatchlist?.("anime");
+    }
 }
 
 export async function loadWatchlistData() {
@@ -222,20 +296,26 @@ export async function loadWatchlistData() {
         
         if (response.status === 404) {
             // Create new watchlist file if it doesn"t exist
-            watchlist = { movies: [], series: [] };
+            watchlist = { movies: [], series: [], anime: [] };
             return watchlist;
         }
         
         const data = await response.json();
-        const content = atob(data.content);
-        watchlist = JSON.parse(content);
+        const content = decodeBase64Utf8(data.content);
+        const parsed = JSON.parse(content);
+        watchlist = {
+            movies: Array.isArray(parsed.movies) ? parsed.movies : [],
+            series: Array.isArray(parsed.series) ? parsed.series : [],
+            anime: Array.isArray(parsed.anime) ? parsed.anime : []
+        };
         window.renderWatchlist?.("movies");
         window.renderWatchlist?.("series");
+        window.renderWatchlist?.("anime");
         
         return watchlist;
     } catch (error) {
         console.error("Error loading watchlist data:", error);
-        watchlist = { movies: [], series: [] };
+        watchlist = { movies: [], series: [], anime: [] };
         return watchlist;
     }
 }
@@ -243,7 +323,9 @@ export async function loadWatchlistData() {
 export async function saveWatchlistData(data = null) {
     // Allow caller to pass the watchlist object to save; fall back to module-level `watchlist`.
     const toSave = data ?? watchlist;
-    if (!accessToken || userData?.login !== REPO_OWNER) return;
+    if (!accessToken || userData?.login !== REPO_OWNER) {
+        throw new Error("Not authorized to save watchlist data");
+    }
 
     try {
         // Get the current file (if it exists) to get the SHA
@@ -271,11 +353,10 @@ export async function saveWatchlistData(data = null) {
         }
 
         // GitHub expects base64-encoded content
-        const content = btoa(JSON.stringify(toSave, null, 2));
+        const content = encodeBase64Utf8(JSON.stringify(toSave, null, 2));
         const body = {
             message: "Update watchlist data",
-            content,
-            branch: "master"
+            content
         };
 
         if (currentFile?.sha) {
@@ -304,7 +385,7 @@ export async function saveWatchlistData(data = null) {
         }
     } catch (error) {
         console.error("Error saving watchlist data:", error);
-        alert("Failed to save watchlist data. Please try again.");
+        throw error;
     }
 }
 
@@ -329,11 +410,10 @@ export async function saveKeywords(keywords) {
             // file may not exist
         }
 
-        const content = btoa(JSON.stringify(toSave, null, 2));
+        const content = encodeBase64Utf8(JSON.stringify(toSave, null, 2));
         const body = {
             message: "Update keywords",
-            content,
-            branch: "master"
+            content
         };
 
         if (currentFile?.sha) body.sha = currentFile.sha;

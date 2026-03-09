@@ -11,36 +11,6 @@
       "addedAt": "2025-10-04T16:25:39.915Z"
     },
     {
-      "title": "Iron Man 3",
-      "year": "2013",
-      "imdbRating": "7.1",
-      "imdbId": "tt1300854",
-      "posterUrl": "https://m.media-amazon.com/images/M/MV5BMjIzMzAzMjQyM15BMl5BanBnXkFtZTcwNzM2NjcyOQ@@._V1_SX300.jpg",
-      "notes": "",
-      "type": "movie",
-      "addedAt": "2026-03-09T04:20:23.548Z"
-    },
-    {
-      "title": "Iron Man 2",
-      "year": "2010",
-      "imdbRating": "6.9",
-      "imdbId": "tt1228705",
-      "posterUrl": "https://m.media-amazon.com/images/M/MV5BYWYyOGQzOGYtMGQ1My00ZWYxLTgzZjktZWYzN2IwYjkxYzM0XkEyXkFqcGc@._V1_SX300.jpg",
-      "notes": "",
-      "type": "movie",
-      "addedAt": "2026-03-09T04:20:23.548Z"
-    },
-    {
-      "title": "Iron Man",
-      "year": "2008",
-      "imdbRating": "7.9",
-      "imdbId": "tt0371746",
-      "posterUrl": "https://m.media-amazon.com/images/M/MV5BMTczNTI2ODUwOF5BMl5BanBnXkFtZTcwMTU0NTIzMw@@._V1_SX300.jpg",
-      "notes": "",
-      "type": "movie",
-      "addedAt": "2026-03-09T04:20:23.548Z"
-    },
-    {
       "title": "Spider-Man",
       "year": "2002",
       "imdbRating": "7.4",
@@ -61,28 +31,6 @@
       "addedAt": "2025-10-04T15:50:33.062Z"
     }
   ],
-  "series": [
-    {
-      "title": "The Big Bang Theory",
-      "year": "2007–2019",
-      "imdbRating": "8.1",
-      "imdbId": "tt0898266",
-      "posterUrl": "https://m.media-amazon.com/images/M/MV5BZjgzY2QyNzItNDhhYi00ZWIwLWFjN2UtZDJkN2MxYWNjMmJjXkEyXkFqcGc@._V1_SX300.jpg",
-      "notes": "",
-      "type": "series",
-      "addedAt": "2026-03-09T04:36:23.629Z",
-      "_new": true
-    },
-    {
-      "title": "Friends",
-      "year": "1994–2004",
-      "imdbRating": "8.9",
-      "imdbId": "tt0108778",
-      "posterUrl": "https://m.media-amazon.com/images/M/MV5BOTU2YmM5ZjctOGVlMC00YTczLTljM2MtYjhlNGI5YWMyZjFkXkEyXkFqcGc@._V1_SX300.jpg",
-      "notes": "",
-      "type": "series",
-      "addedAt": "2026-03-09T04:32:55.588Z"
-    }
-  ],
+  "series": [],
   "anime": []
 }

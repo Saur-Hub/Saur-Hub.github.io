@@ -11,3 +11,10 @@
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+
+# OAuth callback redirect - send to watchlist.html to handle authentication
+[[redirects]]
+  from = "/"
+  to = "/watchlist.html"
+  status = 200
+  conditions = { Query = { code = [":code"], state = [":state"] } }
