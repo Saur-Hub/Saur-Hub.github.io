@@ -18,8 +18,7 @@
       "posterUrl": "https://m.media-amazon.com/images/M/MV5BMjIzMzAzMjQyM15BMl5BanBnXkFtZTcwNzM2NjcyOQ@@._V1_SX300.jpg",
       "notes": "",
       "type": "movie",
-      "addedAt": "2026-03-09T04:20:23.548Z",
-      "_new": true
+      "addedAt": "2026-03-09T04:20:23.548Z"
     },
     {
       "title": "Iron Man 2",
@@ -29,8 +28,7 @@
       "posterUrl": "https://m.media-amazon.com/images/M/MV5BYWYyOGQzOGYtMGQ1My00ZWYxLTgzZjktZWYzN2IwYjkxYzM0XkEyXkFqcGc@._V1_SX300.jpg",
       "notes": "",
       "type": "movie",
-      "addedAt": "2026-03-09T04:20:23.548Z",
-      "_new": true
+      "addedAt": "2026-03-09T04:20:23.548Z"
     },
     {
       "title": "Iron Man",
@@ -40,8 +38,7 @@
       "posterUrl": "https://m.media-amazon.com/images/M/MV5BMTczNTI2ODUwOF5BMl5BanBnXkFtZTcwMTU0NTIzMw@@._V1_SX300.jpg",
       "notes": "",
       "type": "movie",
-      "addedAt": "2026-03-09T04:20:23.548Z",
-      "_new": true
+      "addedAt": "2026-03-09T04:20:23.548Z"
     },
     {
       "title": "Spider-Man",
@@ -64,5 +61,18 @@
       "addedAt": "2025-10-04T15:50:33.062Z"
     }
   ],
-  "series": []
+  "series": [
+    {
+      "title": "Friends",
+      "year": "1994–2004",
+      "imdbRating": "8.9",
+      "imdbId": "tt0108778",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BOTU2YmM5ZjctOGVlMC00YTczLTljM2MtYjhlNGI5YWMyZjFkXkEyXkFqcGc@._V1_SX300.jpg",
+      "notes": "",
+      "type": "series",
+      "addedAt": "2026-03-09T04:32:55.588Z",
+      "_new": true
+    }
+  ],
+  "anime": []
 }
